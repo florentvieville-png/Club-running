@@ -1,0 +1,74 @@
+# Club Running
+
+Application web (PWA installable) pour le club : séances d'entraînement,
+courses, propositions d'événements avec double validation (admin + coach),
+chat par événement, annuaire des membres et annonces.
+
+Stack : Next.js 16 (App Router) + Supabase (base de données, auth,
+temps réel) + Leaflet (carte des points de RDV, OpenStreetMap, sans clé API).
+
+## 1. Créer le projet Supabase
+
+1. Créez un compte et un projet sur [supabase.com](https://supabase.com) (offre gratuite très largement suffisante pour un petit club).
+2. Dans **SQL Editor**, collez et exécutez le contenu de [`supabase/schema.sql`](./supabase/schema.sql). Cela crée les tables, les rôles, les policies de sécurité (RLS) et active le temps réel sur le chat.
+3. Dans **Authentication → Providers**, laissez l'authentification par e-mail (Magic Link / OTP) activée — c'est ce que l'app utilise, pas de mot de passe à gérer.
+4. Dans **Authentication → URL Configuration**, ajoutez l'URL de votre app (ex : `http://localhost:3000` en local, puis votre URL Vercel une fois déployée) dans "Redirect URLs", avec le chemin `/auth/callback`.
+5. Récupérez `Project URL` et `anon public key` dans **Settings → API**.
+
+## 2. Configurer le projet
+
+```bash
+cp .env.local.example .env.local
+```
+
+Remplissez `.env.local` avec les valeurs Supabase récupérées à l'étape 1.
+
+```bash
+npm install
+npm run dev
+```
+
+Ouvrez [http://localhost:3000](http://localhost:3000).
+
+## 3. Premiers utilisateurs et rôles
+
+- Tout nouvel inscrit reçoit automatiquement le rôle `runner`.
+- Pour nommer le premier admin (vous), inscrivez-vous une première fois via l'app, puis dans **Supabase → Table Editor → profiles**, changez la valeur `role` de votre ligne en `admin`.
+- Une fois admin, vous pouvez ensuite promouvoir coach/admin les autres membres directement depuis la page **Membres** de l'application.
+
+## 4. Fonctionnement de la validation des événements
+
+- N'importe quel coureur peut proposer un événement (séance, course ou autre) depuis **Proposer**.
+- L'événement reste `en attente` tant qu'il n'a pas été validé par **un admin ET un coach** (page **Validation**, réservée à ces deux rôles).
+- Si le créateur est lui-même coach ou admin, sa propre validation est acquise automatiquement à la création — il ne manque plus que l'autre validation.
+- Chaque événement (séance, course ou autre) dispose de son propre chat, visible par les mêmes personnes que celles qui peuvent voir l'événement (tout le club une fois approuvé ; le créateur + les coachs/admins pendant l'attente de validation).
+
+## 5. Point de rendez-vous sur la carte
+
+À la création d'un événement, l'option "Afficher le point de rendez-vous sur une carte" fait apparaître une carte (OpenStreetMap via Leaflet, gratuite, sans clé API) sur laquelle il suffit de cliquer pour placer le marqueur. Si l'option est désactivée, seul le texte du lieu est affiché — utile pour un lieu bien connu des membres ou un point de RDV donné oralement.
+
+## 6. Déploiement (Vercel + Supabase, gratuit pour un petit club)
+
+1. Poussez ce repo sur GitHub.
+2. Sur [vercel.com](https://vercel.com), importez le repo.
+3. Renseignez les mêmes variables d'environnement que dans `.env.local` (`NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `NEXT_PUBLIC_SITE_URL` = votre URL Vercel).
+4. Déployez. Ajoutez l'URL de production dans les "Redirect URLs" Supabase (étape 1.4).
+5. Sur mobile, les membres peuvent "Ajouter à l'écran d'accueil" depuis leur navigateur : l'app s'installe comme une vraie application (PWA), sans passer par un store.
+
+## Structure du projet
+
+```
+src/app/            pages (App Router)
+src/app/actions/     Server Actions (créer événement, valider/refuser, RSVP, annonces...)
+src/components/      composants UI (carte, chat, formulaires, nav)
+src/lib/supabase/    clients Supabase (navigateur / serveur) + helper profil courant
+src/proxy.ts         rafraîchissement de session + protection des routes (ex-"middleware")
+supabase/schema.sql  schéma complet + policies de sécurité à exécuter sur Supabase
+```
+
+## Évolutions possibles (V2)
+
+- Notifications push (rappel de séance, nouveau message).
+- Intégration Strava (liaison de compte, import automatique des sorties).
+- Covoiturage vers les courses, résultats/chronos, classements internes.
+- Bibliothèque de plans d'entraînement par groupe de niveau.

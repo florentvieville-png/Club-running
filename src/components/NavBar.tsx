@@ -11,6 +11,7 @@ const LINKS: NavLink[] = [
   { href: "/", label: "Accueil" },
   { href: "/evenements", label: "Séances & courses" },
   { href: "/evenements/nouveau", label: "Proposer" },
+  { href: "/boutique", label: "Boutique" },
   { href: "/validation", label: "Validation", roles: ["coach", "admin"] },
   { href: "/membres", label: "Membres" },
 ];
@@ -23,8 +24,16 @@ export function NavBar({ role, fullName }: { role: UserRole; fullName: string })
   return (
     <header className="sticky top-0 z-40 border-b border-zinc-200 bg-white/90 backdrop-blur dark:border-zinc-800 dark:bg-zinc-950/90">
       <div className="mx-auto flex max-w-4xl items-center justify-between px-4 py-3">
-        <Link href="/" className="font-semibold text-zinc-900 dark:text-zinc-50">
-          🏃 Club Running
+        <Link href="/" className="flex items-center gap-2 font-semibold text-zinc-900 dark:text-zinc-50">
+          <span
+            aria-hidden
+            className="inline-block h-6 w-6 rounded-full bg-orange-600"
+            style={{
+              backgroundImage: "url(/icons/icon-192.png)",
+              backgroundSize: "cover",
+            }}
+          />
+          La Loriolade App
         </Link>
 
         <nav className="hidden items-center gap-1 sm:flex">
@@ -34,7 +43,7 @@ export function NavBar({ role, fullName }: { role: UserRole; fullName: string })
               href={link.href}
               className={`rounded-lg px-3 py-1.5 text-sm font-medium transition-colors ${
                 pathname === link.href
-                  ? "bg-zinc-900 text-white dark:bg-zinc-50 dark:text-zinc-900"
+                  ? "bg-orange-600 text-white dark:bg-orange-500"
                   : "text-zinc-600 hover:bg-zinc-100 dark:text-zinc-300 dark:hover:bg-zinc-900"
               }`}
             >
@@ -68,7 +77,7 @@ export function NavBar({ role, fullName }: { role: UserRole; fullName: string })
               onClick={() => setOpen(false)}
               className={`rounded-lg px-3 py-2 text-sm font-medium ${
                 pathname === link.href
-                  ? "bg-zinc-900 text-white dark:bg-zinc-50 dark:text-zinc-900"
+                  ? "bg-orange-600 text-white dark:bg-orange-500"
                   : "text-zinc-600 dark:text-zinc-300"
               }`}
             >

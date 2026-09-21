@@ -2,9 +2,9 @@
 
 import { useActionState } from "react";
 import { useFormStatus } from "react-dom";
-import { createAnnouncement, type AnnouncementState } from "@/app/actions/announcements";
+import { createShopItem, type ShopItemState } from "@/app/actions/shop";
 
-const initialState: AnnouncementState = {};
+const initialState: ShopItemState = {};
 
 function SubmitButton() {
   const { pending } = useFormStatus();
@@ -14,33 +14,39 @@ function SubmitButton() {
       disabled={pending}
       className="w-fit rounded-lg bg-orange-600 px-3 py-1.5 text-sm font-medium text-white disabled:opacity-50 hover:bg-orange-700 dark:bg-orange-500 dark:hover:bg-orange-600"
     >
-      {pending ? "Publication..." : "Publier l'annonce"}
+      {pending ? "Ajout..." : "Ajouter l'article"}
     </button>
   );
 }
 
-export function AnnouncementForm() {
-  const [state, formAction] = useActionState(createAnnouncement, initialState);
+export function ShopItemForm() {
+  const [state, formAction] = useActionState(createShopItem, initialState);
 
   return (
     <form action={formAction} className="flex flex-col gap-2 rounded-xl border border-zinc-200 p-4 dark:border-zinc-800">
       <input
-        name="title"
-        placeholder="Titre de l'annonce"
+        name="name"
+        placeholder="Nom de l'article (ex : Tee-shirt technique)"
         required
         className="rounded-lg border border-zinc-300 px-3 py-2 text-sm dark:border-zinc-700 dark:bg-zinc-900"
       />
       <textarea
-        name="content"
-        placeholder="Message..."
+        name="description"
+        placeholder="Description, tailles disponibles..."
         rows={2}
-        required
         className="rounded-lg border border-zinc-300 px-3 py-2 text-sm dark:border-zinc-700 dark:bg-zinc-900"
       />
-      <label className="flex items-center gap-2 text-sm">
-        <input type="checkbox" name="pinned" className="h-4 w-4" />
-        Épingler en haut du fil
-      </label>
+      <input
+        name="price_label"
+        placeholder="Prix indicatif (ex : 15 €) — informatif uniquement"
+        className="rounded-lg border border-zinc-300 px-3 py-2 text-sm dark:border-zinc-700 dark:bg-zinc-900"
+      />
+      <input
+        name="image_url"
+        type="url"
+        placeholder="Lien d'une photo (optionnel)"
+        className="rounded-lg border border-zinc-300 px-3 py-2 text-sm dark:border-zinc-700 dark:bg-zinc-900"
+      />
       {state.error && <p className="text-sm text-red-600">{state.error}</p>}
       <SubmitButton />
     </form>

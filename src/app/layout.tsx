@@ -4,6 +4,7 @@ import "./globals.css";
 import { getCurrentProfile } from "@/lib/supabase/current-profile";
 import { NavBar } from "@/components/NavBar";
 import { ServiceWorkerRegister } from "@/components/ServiceWorkerRegister";
+import { InstallPrompt } from "@/components/InstallPrompt";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -16,13 +17,13 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Club Running",
-  description: "Séances, courses et échanges du club de course à pied",
+  title: "La Loriolade App",
+  description: "Séances, courses et échanges du club La Loriolade",
   manifest: "/manifest.webmanifest",
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
-    title: "Club Running",
+    title: "La Loriolade App",
   },
   icons: {
     icon: [{ url: "/icons/favicon-32.png", sizes: "32x32", type: "image/png" }],
@@ -31,7 +32,7 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: "#16a34a",
+  themeColor: "#ea580c",
   width: "device-width",
   initialScale: 1,
 };
@@ -50,6 +51,7 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
           {children}
         </div>
         <ServiceWorkerRegister />
+        {current && <InstallPrompt />}
       </body>
     </html>
   );

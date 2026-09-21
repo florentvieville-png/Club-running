@@ -104,7 +104,7 @@ export function EventChat({
               <p
                 className={`mt-0.5 max-w-[80%] rounded-2xl px-3 py-1.5 text-sm ${
                   isMine
-                    ? "bg-zinc-900 text-white dark:bg-zinc-50 dark:text-zinc-900"
+                    ? "bg-blue-700 text-white dark:bg-blue-600"
                     : "bg-zinc-100 text-zinc-800 dark:bg-zinc-900 dark:text-zinc-100"
                 }`}
               >
@@ -126,7 +126,7 @@ export function EventChat({
         <button
           type="submit"
           disabled={sending || !content.trim()}
-          className="rounded-lg bg-zinc-900 px-3 py-2 text-sm font-medium text-white disabled:opacity-50 dark:bg-zinc-50 dark:text-zinc-900"
+          className="rounded-lg bg-orange-600 px-3 py-2 text-sm font-medium text-white disabled:opacity-50 hover:bg-orange-700 dark:bg-orange-500 dark:hover:bg-orange-600"
         >
           Envoyer
         </button>

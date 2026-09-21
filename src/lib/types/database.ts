@@ -70,6 +70,41 @@ export type Announcement = {
   created_at: string;
 };
 
+export type ShopReservationStatus = "pending" | "fulfilled" | "cancelled";
+
+export type ShopItem = {
+  id: string;
+  name: string;
+  description: string | null;
+  image_url: string | null;
+  price_label: string | null;
+  active: boolean;
+  created_by: string;
+  created_at: string;
+};
+
+export type ShopReservation = {
+  id: string;
+  item_id: string;
+  user_id: string;
+  note: string | null;
+  status: ShopReservationStatus;
+  handled_by: string | null;
+  handled_at: string | null;
+  created_at: string;
+};
+
+export type ShopReservationWithDetails = ShopReservation & {
+  item: Pick<ShopItem, "id" | "name"> | null;
+  member: Pick<Profile, "id" | "full_name"> | null;
+};
+
+export const SHOP_RESERVATION_LABELS: Record<ShopReservationStatus, string> = {
+  pending: "En attente",
+  fulfilled: "Remis",
+  cancelled: "Annulé",
+};
+
 export const EVENT_TYPE_LABELS: Record<EventType, string> = {
   seance: "Séance",
   course: "Course",

@@ -4,6 +4,7 @@ import { useActionState, useState } from "react";
 import { useFormStatus } from "react-dom";
 import { createEvent, type CreateEventState } from "@/app/actions/events";
 import { MapPicker } from "@/components/MapPicker";
+import { geocodeAddress } from "@/lib/geocode";
 import type { EventType } from "@/lib/types/database";
 
 const initialState: CreateEventState = {};
@@ -14,7 +15,7 @@ function SubmitButton() {
     <button
       type="submit"
       disabled={pending}
-      className="rounded-lg bg-zinc-900 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-zinc-700 disabled:opacity-50 dark:bg-zinc-50 dark:text-zinc-900 dark:hover:bg-zinc-200"
+      className="rounded-lg bg-orange-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-orange-700 disabled:opacity-50 dark:bg-orange-500 dark:hover:bg-orange-600"
     >
       {pending ? "Envoi..." : "Proposer l'événement"}
     </button>
@@ -29,6 +30,28 @@ export function EventForm() {
     lat: null,
     lng: null,
   });
+  const [locationName, setLocationName] = useState("");
+  const [geocoding, setGeocoding] = useState(false);
+  const [geocodeError, setGeocodeError] = useState<string | null>(null);
+
+  async function handleLocate() {
+    if (!locationName.trim()) return;
+    setGeocoding(true);
+    setGeocodeError(null);
+    try {
+      const result = await geocodeAddress(locationName);
+      if (result) {
+        setCoords({ lat: result.lat, lng: result.lng });
+        setShowOnMap(true);
+      } else {
+        setGeocodeError("Adresse introuvable, essayez de préciser (ville, code postal...).");
+      }
+    } catch {
+      setGeocodeError("Impossible de localiser cette adresse pour le moment.");
+    } finally {
+      setGeocoding(false);
+    }
+  }
 
   return (
     <form action={formAction} className="flex flex-col gap-4">
@@ -108,12 +131,25 @@ export function EventForm() {
       )}
 
       <label className="flex flex-col gap-1 text-sm">
-        Lieu / point de rendez-vous (texte)
-        <input
-          name="location_name"
-          placeholder="Ex : Parking du stade municipal"
-          className="rounded-lg border border-zinc-300 px-3 py-2 dark:border-zinc-700 dark:bg-zinc-900"
-        />
+        Lieu / point de rendez-vous (adresse ou description)
+        <div className="flex gap-2">
+          <input
+            name="location_name"
+            value={locationName}
+            onChange={(e) => setLocationName(e.target.value)}
+            placeholder="Ex : Parking du stade municipal, Loriol-du-Comtat"
+            className="flex-1 rounded-lg border border-zinc-300 px-3 py-2 dark:border-zinc-700 dark:bg-zinc-900"
+          />
+          <button
+            type="button"
+            onClick={handleLocate}
+            disabled={geocoding || !locationName.trim()}
+            className="whitespace-nowrap rounded-lg border border-orange-600 px-3 py-2 text-sm font-medium text-orange-700 disabled:opacity-50 dark:border-orange-500 dark:text-orange-400"
+          >
+            {geocoding ? "Recherche..." : "📍 Localiser"}
+          </button>
+        </div>
+        {geocodeError && <span className="text-xs text-red-600 dark:text-red-400">{geocodeError}</span>}
       </label>
 
       <label className="flex items-center gap-2 text-sm">

@@ -83,13 +83,7 @@ create table public.events (
   rejected_at timestamptz,
   rejection_reason text,
   created_at timestamptz not null default now(),
-  status event_status generated always as (
-    case
-      when rejected_at is not null then 'rejected'
-      when admin_approved_at is not null and coach_approved_at is not null then 'approved'
-      else 'pending'
-    end
-  ) stored,
+  status event_status not null default 'pending',
   constraint show_on_map_needs_coords check (
     show_on_map = false or (latitude is not null and longitude is not null)
   )
@@ -122,6 +116,30 @@ $$;
 create trigger events_auto_approval
   before insert on public.events
   for each row execute function public.set_auto_approval();
+
+-- Recalcule le statut (pending/approved/rejected) à chaque insertion ou mise à
+-- jour, à partir des colonnes de validation (remplace une colonne "generated"
+-- car un cast vers un type enum n'est pas considéré IMMUTABLE par Postgres).
+create function public.sync_event_status()
+returns trigger
+language plpgsql
+security definer set search_path = public
+as $$
+begin
+  if new.rejected_at is not null then
+    new.status := 'rejected';
+  elsif new.admin_approved_at is not null and new.coach_approved_at is not null then
+    new.status := 'approved';
+  else
+    new.status := 'pending';
+  end if;
+  return new;
+end;
+$$;
+
+create trigger events_sync_status
+  before insert or update on public.events
+  for each row execute function public.sync_event_status();
 
 -- ============================================================
 -- Présences / RSVP

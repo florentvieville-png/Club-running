@@ -51,7 +51,7 @@ export default async function MembersPage() {
           </label>
           <button
             type="submit"
-            className="w-fit rounded-lg bg-zinc-900 px-3 py-1.5 text-sm font-medium text-white dark:bg-zinc-50 dark:text-zinc-900"
+            className="w-fit rounded-lg bg-orange-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-orange-700 dark:bg-orange-500 dark:hover:bg-orange-600"
           >
             Enregistrer
           </button>

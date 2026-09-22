@@ -97,7 +97,10 @@ export async function createEvent(
 
   const parsed = createEventSchema.safeParse(raw);
   if (!parsed.success) {
-    return { error: parsed.error.issues[0]?.message ?? "Formulaire invalide" };
+    const issue = parsed.error.issues[0];
+    const fieldPath = issue?.path?.join(".");
+    const detail = fieldPath ? `Champ "${fieldPath}" : ${issue.message}` : issue?.message;
+    return { error: detail ?? "Formulaire invalide" };
   }
 
   const supabase = await createClient();

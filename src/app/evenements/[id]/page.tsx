@@ -6,6 +6,7 @@ import { RsvpButtons } from "@/components/RsvpButtons";
 import { ApprovalActions } from "@/components/ApprovalActions";
 import { CheckInToggle } from "@/components/CheckInToggle";
 import { EventChat } from "@/components/EventChat";
+import { SeancePlanCard } from "@/components/SeancePlanCard";
 import {
   EVENT_TYPE_LABELS,
   RSVP_LABELS,
@@ -43,6 +44,13 @@ export default async function EventDetailPage(props: PageProps<"/evenements/[id]
   const isReviewer = current.profile.role === "admin" || current.profile.role === "coach";
   const date = new Date(event.starts_at);
 
+  const { data: vmaRow } = await supabase
+    .from("athlete_vma")
+    .select("vma_kmh")
+    .eq("user_id", current.userId)
+    .maybeSingle();
+  const myVma = vmaRow?.vma_kmh ?? null;
+
   const grouped: Record<RsvpStatus, RsvpRow[]> = {
     going: rsvps.filter((r) => r.status === "going"),
     maybe: rsvps.filter((r) => r.status === "maybe"),
@@ -62,7 +70,17 @@ export default async function EventDetailPage(props: PageProps<"/evenements/[id]
           {date.toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" })}
         </p>
         {event.location_name && <p className="text-sm text-zinc-500">📍 {event.location_name}</p>}
-        {event.distance_km && <p className="text-sm text-zinc-500">📏 {event.distance_km} km</p>}
+        {(event.distance_km || event.duration_minutes || event.elevation_gain_m) && (
+          <p className="text-sm text-zinc-500">
+            {[
+              event.distance_km ? `📏 ${event.distance_km} km` : null,
+              event.duration_minutes ? `⏱️ ${event.duration_minutes} min` : null,
+              event.elevation_gain_m ? `⛰️ ${event.elevation_gain_m} m D+` : null,
+            ]
+              .filter(Boolean)
+              .join(" · ")}
+          </p>
+        )}
         {event.external_link && (
           <a
             href={event.external_link}
@@ -87,6 +105,8 @@ export default async function EventDetailPage(props: PageProps<"/evenements/[id]
       {event.show_on_map && event.latitude != null && event.longitude != null && (
         <EventMap latitude={event.latitude} longitude={event.longitude} label={event.location_name ?? undefined} />
       )}
+
+      {event.type === "seance" && <SeancePlanCard event={event} myVma={myVma} />}
 
       {event.status === "rejected" && (
         <p className="rounded-xl border border-red-300 bg-red-50 p-4 text-sm text-red-800 dark:border-red-800 dark:bg-red-950 dark:text-red-200">

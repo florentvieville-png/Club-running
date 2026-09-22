@@ -12,6 +12,8 @@ export type Profile = {
   created_at: string;
 };
 
+export type RepUnit = "time" | "distance";
+
 export type ClubEvent = {
   id: string;
   type: EventType;
@@ -24,6 +26,23 @@ export type ClubEvent = {
   longitude: number | null;
   external_link: string | null;
   distance_km: number | null;
+  duration_minutes: number | null;
+  elevation_gain_m: number | null;
+  seance_type: string | null;
+  warmup_minutes: number | null;
+  warmup_vma_pct: number | null;
+  cooldown_minutes: number | null;
+  cooldown_vma_pct: number | null;
+  series_count: number | null;
+  reps_count: number | null;
+  rep_unit: RepUnit | null;
+  rep_time_minutes: number | null;
+  rep_distance_m: number | null;
+  rep_elevation_m: number | null;
+  rep_vma_pct: number | null;
+  rest_between_reps_seconds: number | null;
+  rest_between_series_minutes: number | null;
+  rest_vma_pct: number | null;
   created_by: string;
   admin_approved_by: string | null;
   admin_approved_at: string | null;
@@ -115,4 +134,19 @@ export const RSVP_LABELS: Record<RsvpStatus, string> = {
   going: "Je viens",
   maybe: "Peut-être",
   not_going: "Absent",
+};
+
+export const SEANCE_TYPE_SUGGESTIONS = [
+  "Fractionné",
+  "Endurance fondamentale",
+  "Sortie longue",
+  "Récupération",
+  "Côtes / Dénivelé",
+  "Allure spécifique",
+];
+
+export type AthleteVma = {
+  user_id: string;
+  vma_kmh: number | null;
+  updated_at: string;
 };

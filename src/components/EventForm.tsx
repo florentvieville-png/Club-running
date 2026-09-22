@@ -5,9 +5,12 @@ import { useFormStatus } from "react-dom";
 import { createEvent, type CreateEventState } from "@/app/actions/events";
 import { MapPicker } from "@/components/MapPicker";
 import { geocodeAddress } from "@/lib/geocode";
-import type { EventType } from "@/lib/types/database";
+import { SEANCE_TYPE_SUGGESTIONS, type EventType, type RepUnit } from "@/lib/types/database";
 
 const initialState: CreateEventState = {};
+
+const inputClass =
+  "rounded-lg border border-zinc-300 px-3 py-2 dark:border-zinc-700 dark:bg-zinc-900";
 
 function SubmitButton() {
   const { pending } = useFormStatus();
@@ -33,6 +36,7 @@ export function EventForm() {
   const [locationName, setLocationName] = useState("");
   const [geocoding, setGeocoding] = useState(false);
   const [geocodeError, setGeocodeError] = useState<string | null>(null);
+  const [repUnit, setRepUnit] = useState<RepUnit>("time");
 
   async function handleLocate() {
     if (!locationName.trim()) return;
@@ -108,26 +112,162 @@ export function EventForm() {
 
       {type === "course" && (
         <>
-          <label className="flex flex-col gap-1 text-sm">
-            Distance (km)
-            <input
-              type="number"
-              step="0.1"
-              min="0"
-              name="distance_km"
-              className="rounded-lg border border-zinc-300 px-3 py-2 dark:border-zinc-700 dark:bg-zinc-900"
-            />
-          </label>
+          <div className="grid grid-cols-3 gap-2">
+            <label className="flex flex-col gap-1 text-sm">
+              Distance (km)
+              <input type="number" step="0.1" min="0" name="distance_km" className={inputClass} />
+            </label>
+            <label className="flex flex-col gap-1 text-sm">
+              Durée (min)
+              <input type="number" step="1" min="0" name="duration_minutes" className={inputClass} />
+            </label>
+            <label className="flex flex-col gap-1 text-sm">
+              Dénivelé (m)
+              <input type="number" step="1" min="0" name="elevation_gain_m" className={inputClass} />
+            </label>
+          </div>
           <label className="flex flex-col gap-1 text-sm">
             Lien d&apos;inscription officiel
             <input
               type="url"
               name="external_link"
               placeholder="https://www.klikego.com/..."
-              className="rounded-lg border border-zinc-300 px-3 py-2 dark:border-zinc-700 dark:bg-zinc-900"
+              className={inputClass}
             />
           </label>
         </>
+      )}
+
+      {type === "seance" && (
+        <div className="flex flex-col gap-4 rounded-xl border border-blue-200 bg-blue-50 p-4 dark:border-blue-900 dark:bg-blue-950">
+          <label className="flex flex-col gap-1 text-sm">
+            Type de séance
+            <input
+              name="seance_type"
+              list="seance-type-suggestions"
+              placeholder="Ex : Fractionné"
+              className={inputClass}
+            />
+            <datalist id="seance-type-suggestions">
+              {SEANCE_TYPE_SUGGESTIONS.map((s) => (
+                <option key={s} value={s} />
+              ))}
+            </datalist>
+          </label>
+
+          <fieldset className="flex flex-col gap-2">
+            <legend className="text-xs font-semibold uppercase tracking-wide text-zinc-500">
+              Échauffement
+            </legend>
+            <div className="grid grid-cols-2 gap-2">
+              <label className="flex flex-col gap-1 text-sm">
+                Durée (min)
+                <input type="number" step="1" min="0" name="warmup_minutes" className={inputClass} />
+              </label>
+              <label className="flex flex-col gap-1 text-sm">
+                % VMA
+                <input type="number" step="1" min="0" name="warmup_vma_pct" className={inputClass} />
+              </label>
+            </div>
+          </fieldset>
+
+          <fieldset className="flex flex-col gap-2">
+            <legend className="text-xs font-semibold uppercase tracking-wide text-zinc-500">
+              Corps de séance
+            </legend>
+            <div className="grid grid-cols-2 gap-2">
+              <label className="flex flex-col gap-1 text-sm">
+                Nombre de séries
+                <input type="number" step="1" min="0" name="series_count" className={inputClass} />
+              </label>
+              <label className="flex flex-col gap-1 text-sm">
+                Répétitions par série
+                <input type="number" step="1" min="0" name="reps_count" className={inputClass} />
+              </label>
+            </div>
+            <label className="flex flex-col gap-1 text-sm">
+              Chaque répétition en
+              <select
+                name="rep_unit"
+                value={repUnit}
+                onChange={(e) => setRepUnit(e.target.value as RepUnit)}
+                className={inputClass}
+              >
+                <option value="time">Temps</option>
+                <option value="distance">Distance</option>
+              </select>
+            </label>
+            <div className="grid grid-cols-2 gap-2">
+              {repUnit === "time" ? (
+                <label className="flex flex-col gap-1 text-sm">
+                  Durée d&apos;une répétition (min)
+                  <input type="number" step="0.5" min="0" name="rep_time_minutes" className={inputClass} />
+                </label>
+              ) : (
+                <label className="flex flex-col gap-1 text-sm">
+                  Distance d&apos;une répétition (m)
+                  <input type="number" step="10" min="0" name="rep_distance_m" className={inputClass} />
+                </label>
+              )}
+              <label className="flex flex-col gap-1 text-sm">
+                % VMA en répétition
+                <input type="number" step="1" min="0" name="rep_vma_pct" className={inputClass} />
+              </label>
+            </div>
+            <label className="flex flex-col gap-1 text-sm">
+              Dénivelé par répétition (m, optionnel)
+              <input type="number" step="1" min="0" name="rep_elevation_m" className={inputClass} />
+            </label>
+          </fieldset>
+
+          <fieldset className="flex flex-col gap-2">
+            <legend className="text-xs font-semibold uppercase tracking-wide text-zinc-500">
+              Repos
+            </legend>
+            <div className="grid grid-cols-3 gap-2">
+              <label className="flex flex-col gap-1 text-sm">
+                Entre répétitions (s)
+                <input
+                  type="number"
+                  step="5"
+                  min="0"
+                  name="rest_between_reps_seconds"
+                  className={inputClass}
+                />
+              </label>
+              <label className="flex flex-col gap-1 text-sm">
+                Entre séries (min)
+                <input
+                  type="number"
+                  step="0.5"
+                  min="0"
+                  name="rest_between_series_minutes"
+                  className={inputClass}
+                />
+              </label>
+              <label className="flex flex-col gap-1 text-sm">
+                % VMA au repos
+                <input type="number" step="1" min="0" name="rest_vma_pct" className={inputClass} />
+              </label>
+            </div>
+          </fieldset>
+
+          <fieldset className="flex flex-col gap-2">
+            <legend className="text-xs font-semibold uppercase tracking-wide text-zinc-500">
+              Retour au calme
+            </legend>
+            <div className="grid grid-cols-2 gap-2">
+              <label className="flex flex-col gap-1 text-sm">
+                Durée (min)
+                <input type="number" step="1" min="0" name="cooldown_minutes" className={inputClass} />
+              </label>
+              <label className="flex flex-col gap-1 text-sm">
+                % VMA
+                <input type="number" step="1" min="0" name="cooldown_vma_pct" className={inputClass} />
+              </label>
+            </div>
+          </fieldset>
+        </div>
       )}
 
       <label className="flex flex-col gap-1 text-sm">

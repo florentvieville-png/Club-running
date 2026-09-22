@@ -13,6 +13,8 @@ export async function updateOwnProfile(formData: FormData) {
   const full_name = String(formData.get("full_name") ?? "").trim();
   const pace_group = String(formData.get("pace_group") ?? "").trim();
   const phone = String(formData.get("phone") ?? "").trim();
+  const vmaRaw = String(formData.get("vma_kmh") ?? "").trim();
+  const vma_kmh = vmaRaw ? Number(vmaRaw) : null;
 
   const supabase = await createClient();
   const { error } = await supabase
@@ -25,6 +27,17 @@ export async function updateOwnProfile(formData: FormData) {
     .eq("id", current.userId);
 
   if (error) throw new Error(error.message);
+
+  if (vma_kmh != null && !Number.isNaN(vma_kmh)) {
+    const { error: vmaError } = await supabase
+      .from("athlete_vma")
+      .upsert(
+        { user_id: current.userId, vma_kmh, updated_at: new Date().toISOString() },
+        { onConflict: "user_id" }
+      );
+    if (vmaError) throw new Error(vmaError.message);
+  }
+
   revalidatePath("/membres");
 }
 

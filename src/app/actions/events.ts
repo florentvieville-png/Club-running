@@ -74,7 +74,7 @@ export async function createEvent(
     show_on_map: formData.get("show_on_map") === "on",
     latitude: field("latitude"),
     longitude: field("longitude"),
-    external_link: formData.get("external_link"),
+    external_link: formData.get("external_link") ?? "",
     distance_km: field("distance_km"),
     duration_minutes: field("duration_minutes"),
     elevation_gain_m: field("elevation_gain_m"),

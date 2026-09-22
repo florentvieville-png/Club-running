@@ -12,7 +12,7 @@ function SubmitButton() {
     <button
       type="submit"
       disabled={pending}
-      className="w-fit rounded-lg bg-orange-600 px-3 py-1.5 text-sm font-medium text-white disabled:opacity-50 hover:bg-orange-700 dark:bg-orange-500 dark:hover:bg-orange-600"
+      className="w-fit rounded-lg bg-brand-orange px-3 py-1.5 text-sm font-medium text-white disabled:opacity-50 hover:brightness-95  dark:hover:bg-brand-orange"
     >
       {pending ? "Publication..." : "Publier l'annonce"}
     </button>

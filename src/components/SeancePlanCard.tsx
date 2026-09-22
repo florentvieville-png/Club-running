@@ -25,7 +25,7 @@ function PhaseRow({
         <div className="text-right">
           <p className="text-xs text-zinc-400">{vmaPct}% VMA</p>
           {speed && (
-            <p className="text-sm font-semibold text-orange-700 dark:text-orange-400">
+            <p className="text-sm font-semibold text-brand-orange ">
               {speedToPace(speed)}
             </p>
           )}

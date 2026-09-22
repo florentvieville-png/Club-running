@@ -5,6 +5,24 @@ import { Suspense, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import Image from "next/image";
 
+function MountainHero() {
+  return (
+    <svg viewBox="0 0 400 200" className="h-full w-full" preserveAspectRatio="xMidYMax slice">
+      <defs>
+        <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor="#0e5b8e" />
+          <stop offset="100%" stopColor="#388bc7" />
+        </linearGradient>
+      </defs>
+      <rect width="400" height="200" fill="url(#sky)" />
+      <circle cx="330" cy="45" r="26" fill="#ffd23f" opacity="0.9" />
+      <path d="M0 150 L70 80 L120 130 L180 60 L250 150 Z" fill="#0e5b8e" opacity="0.55" />
+      <path d="M-20 170 L90 100 L160 160 L230 90 L340 170 Z" fill="#ff7a00" opacity="0.35" />
+      <path d="M0 200 L60 130 L140 190 L220 110 L300 190 L400 140 L400 200 Z" fill="#0b1420" opacity="0.25" />
+    </svg>
+  );
+}
+
 function LoginForm() {
   const searchParams = useSearchParams();
   const next = searchParams.get("next") ?? "/";
@@ -42,16 +60,26 @@ function LoginForm() {
   }
 
   return (
-    <div className="flex min-h-dvh items-center justify-center bg-zinc-50 px-4 dark:bg-black">
-      <div className="w-full max-w-sm rounded-2xl border border-zinc-200 bg-white p-6 shadow-sm dark:border-zinc-800 dark:bg-zinc-950">
-        <div className="flex items-center gap-2">
-          <Image src="/icons/icon-192.png" alt="" width={32} height={32} className="rounded-full" />
-          <h1 className="text-xl font-semibold text-zinc-900 dark:text-zinc-50">
-            La Loriolade App
-          </h1>
+    <div className="flex min-h-dvh flex-col bg-[#0e5b8e]">
+      <div className="relative h-56 shrink-0 overflow-hidden">
+        <MountainHero />
+        <div className="absolute inset-0 flex flex-col items-center justify-center gap-2">
+          <Image
+            src="/icons/logo-120.png"
+            alt="La Loriolade"
+            width={92}
+            height={92}
+            className="drop-shadow-lg"
+            priority
+          />
         </div>
+      </div>
+
+      <div className="flex flex-1 flex-col rounded-t-3xl bg-white px-6 pb-10 pt-7 dark:bg-zinc-950">
+        <h1 className="text-2xl font-bold text-brand-blue-dark dark:text-white">La Loriolade</h1>
         <p className="mt-1 text-sm text-zinc-500">
-          Connexion par lien magique envoyé à votre adresse e-mail.
+          Course à pied · Trail · Partage — connexion par lien magique envoyé à votre adresse
+          e-mail.
         </p>
 
         {authError && (
@@ -75,7 +103,7 @@ function LoginForm() {
                 value={fullName}
                 onChange={(e) => setFullName(e.target.value)}
                 placeholder="Ex : Camille Dupont"
-                className="rounded-lg border border-zinc-300 px-3 py-2 text-sm outline-none focus:border-orange-600 dark:border-zinc-700 dark:bg-zinc-900 dark:focus:border-orange-500"
+                className="rounded-xl border border-zinc-300 px-3 py-2.5 text-sm outline-none focus:border-brand-orange dark:border-zinc-700 dark:bg-zinc-900 dark:focus:border-brand-orange"
               />
             </label>
             <label className="flex flex-col gap-1 text-sm text-zinc-700 dark:text-zinc-300">
@@ -86,7 +114,7 @@ function LoginForm() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="vous@exemple.fr"
-                className="rounded-lg border border-zinc-300 px-3 py-2 text-sm outline-none focus:border-orange-600 dark:border-zinc-700 dark:bg-zinc-900 dark:focus:border-orange-500"
+                className="rounded-xl border border-zinc-300 px-3 py-2.5 text-sm outline-none focus:border-brand-orange dark:border-zinc-700 dark:bg-zinc-900 dark:focus:border-brand-orange"
               />
             </label>
             {errorMessage && (
@@ -97,9 +125,9 @@ function LoginForm() {
             <button
               type="submit"
               disabled={status === "sending"}
-              className="mt-2 rounded-lg bg-orange-600 px-3 py-2 text-sm font-medium text-white transition-colors hover:bg-orange-700 disabled:opacity-50 dark:bg-orange-500 dark:hover:bg-orange-600"
+              className="mt-2 rounded-xl bg-brand-orange px-3 py-3 text-sm font-semibold text-white shadow-md shadow-orange-500/30 transition-colors hover:brightness-95 disabled:opacity-50"
             >
-              {status === "sending" ? "Envoi..." : "Recevoir mon lien de connexion"}
+              {status === "sending" ? "Envoi..." : "Se connecter"}
             </button>
           </form>
         )}

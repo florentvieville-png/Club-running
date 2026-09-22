@@ -58,7 +58,7 @@ export function InstallPrompt() {
   if (!deferredPrompt && !showIosHint) return null;
 
   return (
-    <div className="fixed inset-x-4 bottom-4 z-50 mx-auto flex max-w-sm items-center gap-3 rounded-xl border border-zinc-200 bg-white p-3 shadow-lg dark:border-zinc-800 dark:bg-zinc-900">
+    <div className="safe-bottom fixed inset-x-4 bottom-24 z-50 mx-auto flex max-w-sm items-center gap-3 rounded-xl border border-zinc-200 bg-white p-3 shadow-lg dark:border-zinc-800 dark:bg-zinc-900">
       <span className="text-2xl">📲</span>
       <div className="flex-1 text-sm">
         {deferredPrompt ? (
@@ -79,7 +79,7 @@ export function InstallPrompt() {
               setDeferredPrompt(null);
               dismiss();
             }}
-            className="rounded-lg bg-orange-600 px-2 py-1 text-xs font-medium text-white hover:bg-orange-700"
+            className="rounded-lg bg-brand-orange px-2 py-1 text-xs font-medium text-white hover:brightness-95"
           >
             Installer
           </button>

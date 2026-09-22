@@ -5,8 +5,8 @@ import { useMemo, useState } from "react";
 import { EVENT_TYPE_LABELS, type EventWithCreator } from "@/lib/types/database";
 
 const DOT_COLOR: Record<string, string> = {
-  seance: "bg-blue-500",
-  course: "bg-purple-500",
+  seance: "bg-brand-blue",
+  course: "bg-brand-orange",
   autre: "bg-zinc-400",
 };
 
@@ -98,7 +98,7 @@ export function EventCalendar({ events }: { events: EventWithCreator[] }) {
             >
               <span
                 className={`flex h-5 w-5 items-center justify-center rounded-full ${
-                  isToday ? "bg-orange-600 text-white" : ""
+                  isToday ? "bg-brand-orange text-white" : ""
                 }`}
               >
                 {day.getDate()}

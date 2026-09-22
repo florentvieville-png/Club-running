@@ -21,7 +21,7 @@ export function ReservationButton({ itemId }: { itemId: string }) {
     return (
       <button
         onClick={() => setOpen(true)}
-        className="rounded-lg bg-orange-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-orange-700 dark:bg-orange-500 dark:hover:bg-orange-600"
+        className="rounded-lg bg-brand-orange px-3 py-1.5 text-sm font-medium text-white hover:brightness-95  dark:hover:bg-brand-orange"
       >
         Réserver
       </button>
@@ -45,7 +45,7 @@ export function ReservationButton({ itemId }: { itemId: string }) {
               setDone(true);
             })
           }
-          className="rounded-lg bg-orange-600 px-3 py-1.5 text-sm font-medium text-white disabled:opacity-50 hover:bg-orange-700 dark:bg-orange-500 dark:hover:bg-orange-600"
+          className="rounded-lg bg-brand-orange px-3 py-1.5 text-sm font-medium text-white disabled:opacity-50 hover:brightness-95  dark:hover:bg-brand-orange"
         >
           Confirmer la demande
         </button>

@@ -18,7 +18,7 @@ function SubmitButton() {
     <button
       type="submit"
       disabled={pending}
-      className="rounded-lg bg-orange-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-orange-700 disabled:opacity-50 dark:bg-orange-500 dark:hover:bg-orange-600"
+      className="rounded-lg bg-brand-orange px-4 py-2 text-sm font-medium text-white transition-colors hover:brightness-95 disabled:opacity-50  dark:hover:bg-brand-orange"
     >
       {pending ? "Envoi..." : "Proposer l'événement"}
     </button>
@@ -284,7 +284,7 @@ export function EventForm() {
             type="button"
             onClick={handleLocate}
             disabled={geocoding || !locationName.trim()}
-            className="whitespace-nowrap rounded-lg border border-orange-600 px-3 py-2 text-sm font-medium text-orange-700 disabled:opacity-50 dark:border-orange-500 dark:text-orange-400"
+            className="whitespace-nowrap rounded-lg border border-brand-orange px-3 py-2 text-sm font-medium text-brand-orange disabled:opacity-50  "
           >
             {geocoding ? "Recherche..." : "📍 Localiser"}
           </button>

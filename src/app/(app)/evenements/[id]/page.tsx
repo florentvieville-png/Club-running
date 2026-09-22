@@ -7,6 +7,7 @@ import { ApprovalActions } from "@/components/ApprovalActions";
 import { CheckInToggle } from "@/components/CheckInToggle";
 import { EventChat } from "@/components/EventChat";
 import { SeancePlanCard } from "@/components/SeancePlanCard";
+import { LocationPinIcon } from "@/components/icons";
 import {
   EVENT_TYPE_LABELS,
   RSVP_LABELS,
@@ -57,44 +58,58 @@ export default async function EventDetailPage(props: PageProps<"/evenements/[id]
     not_going: rsvps.filter((r) => r.status === "not_going"),
   };
 
+  const stats = [
+    event.distance_km ? { label: "Distance", value: `${event.distance_km} km` } : null,
+    event.duration_minutes ? { label: "Durée", value: `${event.duration_minutes} min` } : null,
+    event.elevation_gain_m ? { label: "Dénivelé", value: `${event.elevation_gain_m} m D+` } : null,
+  ].filter(Boolean) as { label: string; value: string }[];
+
   return (
     <div className="flex flex-col gap-6">
-      <div className="flex flex-col gap-2">
-        <span className="w-fit rounded-full bg-zinc-100 px-2 py-0.5 text-xs font-medium text-zinc-600 dark:bg-zinc-900 dark:text-zinc-300">
+      <div className="overflow-hidden rounded-2xl bg-gradient-to-br from-brand-blue-dark to-brand-blue p-5 text-white">
+        <span className="w-fit rounded-full bg-white/15 px-2.5 py-0.5 text-xs font-semibold uppercase tracking-wide">
           {EVENT_TYPE_LABELS[event.type]}
         </span>
-        <h1 className="text-2xl font-semibold">{event.title}</h1>
-        <p className="text-sm text-zinc-500">
+        <h1 className="mt-2 text-2xl font-bold">{event.title}</h1>
+        <p className="mt-1 text-sm text-white/85">
           {date.toLocaleDateString("fr-FR", { weekday: "long", day: "numeric", month: "long", year: "numeric" })}
           {" à "}
           {date.toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" })}
         </p>
-        {event.location_name && <p className="text-sm text-zinc-500">📍 {event.location_name}</p>}
-        {(event.distance_km || event.duration_minutes || event.elevation_gain_m) && (
-          <p className="text-sm text-zinc-500">
-            {[
-              event.distance_km ? `📏 ${event.distance_km} km` : null,
-              event.duration_minutes ? `⏱️ ${event.duration_minutes} min` : null,
-              event.elevation_gain_m ? `⛰️ ${event.elevation_gain_m} m D+` : null,
-            ]
-              .filter(Boolean)
-              .join(" · ")}
+        {event.location_name && (
+          <p className="mt-1 flex items-center gap-1 text-sm text-white/85">
+            <LocationPinIcon className="h-4 w-4 shrink-0" /> {event.location_name}
           </p>
         )}
-        {event.external_link && (
-          <a
-            href={event.external_link}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="w-fit text-sm font-medium text-blue-600 underline dark:text-blue-400"
-          >
-            Inscription officielle →
-          </a>
-        )}
         {event.creator && (
-          <p className="text-xs text-zinc-400">Proposé par {event.creator.full_name}</p>
+          <p className="mt-2 text-xs text-white/60">Proposé par {event.creator.full_name}</p>
         )}
       </div>
+
+      {stats.length > 0 && (
+        <div className="grid grid-cols-3 gap-2">
+          {stats.map((s) => (
+            <div
+              key={s.label}
+              className="flex flex-col items-center gap-0.5 rounded-2xl border border-zinc-200 bg-white py-3 dark:border-zinc-800 dark:bg-zinc-950"
+            >
+              <span className="text-sm font-bold text-brand-blue-dark dark:text-blue-300">{s.value}</span>
+              <span className="text-[11px] text-zinc-500">{s.label}</span>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {event.external_link && (
+        <a
+          href={event.external_link}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="w-fit text-sm font-medium text-brand-blue-dark underline dark:text-blue-300"
+        >
+          Inscription officielle →
+        </a>
+      )}
 
       {event.description && (
         <p className="whitespace-pre-wrap text-sm text-zinc-700 dark:text-zinc-300">
@@ -109,7 +124,7 @@ export default async function EventDetailPage(props: PageProps<"/evenements/[id]
       {event.type === "seance" && <SeancePlanCard event={event} myVma={myVma} />}
 
       {event.status === "rejected" && (
-        <p className="rounded-xl border border-red-300 bg-red-50 p-4 text-sm text-red-800 dark:border-red-800 dark:bg-red-950 dark:text-red-200">
+        <p className="rounded-2xl border border-red-300 bg-red-50 p-4 text-sm text-red-800 dark:border-red-800 dark:bg-red-950 dark:text-red-200">
           Cet événement a été refusé{event.rejection_reason ? ` : ${event.rejection_reason}` : "."}
         </p>
       )}
@@ -124,7 +139,7 @@ export default async function EventDetailPage(props: PageProps<"/evenements/[id]
       )}
 
       {event.status === "pending" && !isReviewer && (
-        <p className="rounded-xl border border-amber-300 bg-amber-50 p-4 text-sm text-amber-800 dark:border-amber-800 dark:bg-amber-950 dark:text-amber-200">
+        <p className="rounded-2xl border border-amber-300 bg-amber-50 p-4 text-sm text-amber-800 dark:border-amber-800 dark:bg-amber-950 dark:text-amber-200">
           En attente de validation par le bureau (admin + coach).
         </p>
       )}
@@ -138,7 +153,7 @@ export default async function EventDetailPage(props: PageProps<"/evenements/[id]
 
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
             {(["going", "maybe", "not_going"] as RsvpStatus[]).map((status) => (
-              <div key={status} className="rounded-xl border border-zinc-200 p-3 dark:border-zinc-800">
+              <div key={status} className="rounded-2xl border border-zinc-200 p-3 dark:border-zinc-800">
                 <p className="mb-2 text-xs font-semibold text-zinc-500">
                   {RSVP_LABELS[status]} ({grouped[status].length})
                 </p>

@@ -79,7 +79,7 @@ export default async function EventsPage(props: PageProps<"/evenements">) {
         <h1 className="text-xl font-semibold">Séances & courses</h1>
         <Link
           href="/evenements/nouveau"
-          className="rounded-lg bg-orange-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-orange-700 dark:bg-orange-500 dark:hover:bg-orange-600"
+          className="rounded-lg bg-brand-orange px-3 py-1.5 text-sm font-medium text-white hover:brightness-95  dark:hover:bg-brand-orange"
         >
           + Proposer
         </Link>
@@ -92,7 +92,7 @@ export default async function EventsPage(props: PageProps<"/evenements">) {
             href={tab.value === "all" ? "/evenements" : `/evenements?type=${tab.value}`}
             className={`whitespace-nowrap rounded-full px-3 py-1.5 text-sm font-medium ${
               (typeFilter ?? "all") === tab.value
-                ? "bg-orange-600 text-white dark:bg-orange-500"
+                ? "bg-brand-orange text-white "
                 : "bg-zinc-100 text-zinc-600 dark:bg-zinc-900 dark:text-zinc-300"
             }`}
           >

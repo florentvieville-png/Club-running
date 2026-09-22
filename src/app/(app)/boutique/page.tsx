@@ -5,6 +5,7 @@ import { ReservationButton } from "@/components/ReservationButton";
 import { ShopItemForm } from "@/components/ShopItemForm";
 import { ReservationStatusControl } from "@/components/ReservationStatusControl";
 import { ToggleItemActive } from "@/components/ToggleItemActive";
+import { ShopIcon } from "@/components/icons";
 import {
   SHOP_RESERVATION_LABELS,
   type ShopItem,
@@ -51,25 +52,27 @@ export default async function BoutiquePage() {
         {visibleItems.map((item) => (
           <div
             key={item.id}
-            className={`flex flex-col gap-2 rounded-xl border border-zinc-200 p-4 dark:border-zinc-800 ${
+            className={`flex flex-col gap-2 overflow-hidden rounded-2xl border border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-950 ${
               !item.active ? "opacity-50" : ""
             }`}
           >
-            {item.image_url && (
+            {item.image_url ? (
               // eslint-disable-next-line @next/next/no-img-element
-              <img
-                src={item.image_url}
-                alt={item.name}
-                className="h-40 w-full rounded-lg object-cover"
-              />
+              <img src={item.image_url} alt={item.name} className="h-40 w-full object-cover" />
+            ) : (
+              <div className="flex h-32 w-full items-center justify-center bg-gradient-to-br from-brand-blue-dark to-brand-blue">
+                <ShopIcon className="h-10 w-10 text-white/70" />
+              </div>
             )}
-            <div className="flex items-start justify-between gap-2">
-              <h3 className="font-semibold">{item.name}</h3>
-              {isReviewer && <ToggleItemActive itemId={item.id} active={item.active} />}
+            <div className="flex flex-col gap-2 p-4 pt-1">
+              <div className="flex items-start justify-between gap-2">
+                <h3 className="font-semibold">{item.name}</h3>
+                {isReviewer && <ToggleItemActive itemId={item.id} active={item.active} />}
+              </div>
+              {item.description && <p className="text-sm text-zinc-600 dark:text-zinc-300">{item.description}</p>}
+              {item.price_label && <p className="text-sm font-semibold text-brand-orange">{item.price_label}</p>}
+              {item.active && <ReservationButton itemId={item.id} />}
             </div>
-            {item.description && <p className="text-sm text-zinc-600 dark:text-zinc-300">{item.description}</p>}
-            {item.price_label && <p className="text-sm font-medium text-orange-700 dark:text-orange-400">{item.price_label}</p>}
-            {item.active && <ReservationButton itemId={item.id} />}
           </div>
         ))}
       </section>

@@ -4,21 +4,27 @@ import { createClient } from "@/lib/supabase/client";
 import { Suspense, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Image from "next/image";
+import { Caveat } from "next/font/google";
 
-function MountainHero() {
+const caveat = Caveat({ subsets: ["latin"], weight: ["600", "700"] });
+
+function WaveDivider() {
   return (
-    <svg viewBox="0 0 400 200" className="h-full w-full" preserveAspectRatio="xMidYMax slice">
-      <defs>
-        <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stopColor="#0e5b8e" />
-          <stop offset="100%" stopColor="#388bc7" />
-        </linearGradient>
-      </defs>
-      <rect width="400" height="200" fill="url(#sky)" />
-      <circle cx="330" cy="45" r="26" fill="#ffd23f" opacity="0.9" />
-      <path d="M0 150 L70 80 L120 130 L180 60 L250 150 Z" fill="#0e5b8e" opacity="0.55" />
-      <path d="M-20 170 L90 100 L160 160 L230 90 L340 170 Z" fill="#ff7a00" opacity="0.35" />
-      <path d="M0 200 L60 130 L140 190 L220 110 L300 190 L400 140 L400 200 Z" fill="#0b1420" opacity="0.25" />
+    <svg
+      viewBox="0 0 400 40"
+      className="block h-8 w-full"
+      preserveAspectRatio="none"
+      aria-hidden="true"
+    >
+      <path
+        d="M0 24 C 50 4, 100 4, 150 20 S 250 36, 300 18 S 380 4, 400 12 L400 40 L0 40 Z"
+        fill="#ff7a00"
+      />
+      <path
+        d="M0 30 C 60 14, 120 14, 180 26 S 280 38, 340 22 S 390 14, 400 20 L400 40 L0 40 Z"
+        fill="#ffd23f"
+        opacity="0.85"
+      />
     </svg>
   );
 }
@@ -28,6 +34,7 @@ function LoginForm() {
   const searchParams = useSearchParams();
   const next = searchParams.get("next") ?? "/";
 
+  const [view, setView] = useState<"splash" | "form">("splash");
   const [mode, setMode] = useState<"signin" | "signup" | "forgot">("signin");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -102,23 +109,102 @@ function LoginForm() {
     setStatus("sent");
   }
 
-  return (
-    <div className="flex min-h-dvh flex-col bg-[#0e5b8e]">
-      <div className="relative h-56 shrink-0 overflow-hidden">
-        <MountainHero />
-        <div className="absolute inset-0 flex flex-col items-center justify-center gap-2">
+  if (view === "splash") {
+    return (
+      <div className="flex min-h-dvh flex-col bg-gradient-to-b from-[#0e5b8e] to-[#388bc7]">
+        <div className="flex flex-col items-center gap-3 px-6 pb-6 pt-12">
           <Image
             src="/icons/logo-120.png"
             alt="La Loriolade"
-            width={92}
-            height={92}
+            width={84}
+            height={84}
             className="drop-shadow-lg"
             priority
           />
+          <div className="text-center">
+            <h1 className="text-2xl font-extrabold tracking-wide text-white">LA LORIOLADE</h1>
+            <p className="mt-1 text-xs uppercase tracking-[0.2em] text-white/70">
+              Course à pied · Trail · Partage
+            </p>
+          </div>
+        </div>
+
+        <div className="relative mt-2 flex-1 overflow-hidden">
+          <Image
+            src="/images/hero-trail.webp"
+            alt="Coureurs de La Loriolade sur les crêtes au coucher du soleil"
+            fill
+            sizes="100vw"
+            className="object-cover"
+            priority
+          />
+          <div className="absolute inset-x-0 bottom-0 h-2/3 bg-gradient-to-t from-black/70 via-black/10 to-transparent" />
+          <p
+            className={`${caveat.className} absolute inset-x-0 bottom-4 px-6 text-center text-3xl font-bold leading-tight text-white drop-shadow-md`}
+          >
+            Plus qu&apos;un club,
+            <br />
+            une bande de moustachus !
+          </p>
+        </div>
+
+        <div className="relative bg-white px-6 pb-10 pt-6 dark:bg-zinc-950">
+          <div className="absolute inset-x-0 -top-8">
+            <WaveDivider />
+          </div>
+          <div className="flex flex-col gap-3">
+            <button
+              type="button"
+              onClick={() => {
+                setView("form");
+                setMode("signin");
+                setErrorMessage(null);
+              }}
+              className="flex items-center justify-center gap-2 rounded-xl bg-brand-orange px-3 py-3 text-sm font-semibold text-white shadow-md shadow-orange-500/30 transition-colors hover:brightness-95"
+            >
+              <svg viewBox="0 0 20 20" fill="currentColor" className="h-4 w-4">
+                <path d="M10 10a4 4 0 100-8 4 4 0 000 8zM2 18a8 8 0 1116 0 1 1 0 01-1 1H3a1 1 0 01-1-1z" />
+              </svg>
+              Se connecter
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setView("form");
+                setMode("signup");
+                setErrorMessage(null);
+              }}
+              className="w-fit self-center text-sm font-medium text-brand-blue-dark underline dark:text-blue-300"
+            >
+              Créer un compte
+            </button>
+          </div>
         </div>
       </div>
+    );
+  }
 
-      <div className="flex flex-1 flex-col rounded-t-3xl bg-white px-6 pb-10 pt-7 dark:bg-zinc-950">
+  return (
+    <div className="flex min-h-dvh flex-col bg-white dark:bg-zinc-950">
+      <div className="flex items-center gap-3 px-6 pb-2 pt-7">
+        <button
+          type="button"
+          onClick={() => setView("splash")}
+          aria-label="Retour"
+          className="flex h-9 w-9 items-center justify-center rounded-full text-zinc-500 hover:bg-zinc-100 dark:hover:bg-zinc-900"
+        >
+          <svg viewBox="0 0 20 20" fill="currentColor" className="h-5 w-5">
+            <path
+              fillRule="evenodd"
+              d="M12.79 5.23a.75.75 0 010 1.06L9.06 10l3.73 3.71a.75.75 0 11-1.06 1.06l-4.25-4.24a.75.75 0 010-1.06l4.25-4.24a.75.75 0 011.06 0z"
+              clipRule="evenodd"
+            />
+          </svg>
+        </button>
+        <Image src="/icons/logo-64.png" alt="La Loriolade" width={36} height={36} />
+      </div>
+
+      <div className="flex flex-1 flex-col px-6 pb-10 pt-3">
         <h1 className="text-2xl font-bold text-brand-blue-dark dark:text-white">La Loriolade</h1>
         <p className="mt-1 text-sm text-zinc-500">Course à pied · Trail · Partage</p>
 

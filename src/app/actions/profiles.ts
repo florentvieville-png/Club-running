@@ -1,6 +1,7 @@
 "use server";
 
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { getCurrentProfile } from "@/lib/supabase/current-profile";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
@@ -55,5 +56,22 @@ export async function updateMemberRole(memberId: string, role: UserRole) {
     .eq("id", memberId);
 
   if (error) throw new Error(error.message);
+  revalidatePath("/membres");
+}
+
+export async function deleteMember(memberId: string) {
+  const current = await getCurrentProfile();
+  if (!current) redirect("/login");
+  if (current.profile.role !== "admin") {
+    throw new Error("Réservé aux admins");
+  }
+  if (memberId === current.userId) {
+    throw new Error("Vous ne pouvez pas supprimer votre propre compte");
+  }
+
+  const admin = createAdminClient();
+  const { error } = await admin.auth.admin.deleteUser(memberId);
+  if (error) throw new Error(error.message);
+
   revalidatePath("/membres");
 }

@@ -47,7 +47,7 @@ export type ClubEvent = {
   rest_between_reps_seconds: number | null;
   rest_between_series_minutes: number | null;
   rest_vma_pct: number | null;
-  created_by: string;
+  created_by: string | null;
   admin_approved_by: string | null;
   admin_approved_at: string | null;
   coach_approved_by: string | null;
@@ -89,7 +89,7 @@ export type Announcement = {
   title: string;
   content: string;
   pinned: boolean;
-  created_by: string;
+  created_by: string | null;
   created_at: string;
 };
 
@@ -109,7 +109,7 @@ export type ShopItem = {
   image_url: string | null;
   price_label: string | null;
   active: boolean;
-  created_by: string;
+  created_by: string | null;
   created_at: string;
 };
 

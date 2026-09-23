@@ -7,7 +7,10 @@ type BeforeInstallPromptEvent = Event & {
   userChoice: Promise<{ outcome: "accepted" | "dismissed" }>;
 };
 
-const DISMISS_KEY = "loriolade-install-dismissed";
+// v2 : l'ancienne clé était (à tort) écrite après une installation réussie,
+// ce qui bloquait la proposition pour toujours même après désinstallation.
+// Changer de clé fait repartir tout le monde sur une base saine.
+const DISMISS_KEY = "loriolade-install-dismissed-v2";
 
 function isStandalone() {
   if (typeof window === "undefined") return true;
@@ -76,8 +79,11 @@ export function InstallPrompt() {
             onClick={async () => {
               await deferredPrompt.prompt();
               await deferredPrompt.userChoice;
+              // On efface juste la proposition en cours : pas de dismiss()
+              // permanent ici, sinon impossible de la faire réapparaître
+              // après une désinstallation (isStandalone() suffit à la
+              // masquer tant que l'app reste installée).
               setDeferredPrompt(null);
-              dismiss();
             }}
             className="rounded-lg bg-brand-orange px-2 py-1 text-xs font-medium text-white hover:brightness-95"
           >

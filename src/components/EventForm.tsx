@@ -2,10 +2,10 @@
 
 import { useActionState, useState } from "react";
 import { useFormStatus } from "react-dom";
-import { createEvent, type CreateEventState } from "@/app/actions/events";
+import { createEvent, updateEvent, type EventFormState } from "@/app/actions/events";
 import { MapPicker } from "@/components/MapPicker";
 import { geocodeAddress } from "@/lib/geocode";
-import { SEANCE_TYPE_SUGGESTIONS, type EventType, type RepUnit } from "@/lib/types/database";
+import { SEANCE_TYPE_SUGGESTIONS, type ClubEvent, type EventType, type RepUnit } from "@/lib/types/database";
 
 const TERRAIN_OPTIONS = [
   { value: "route", label: "Route" },
@@ -19,12 +19,18 @@ const DIFFICULTY_OPTIONS = [
   { value: "confirme", label: "Confirmé" },
 ];
 
-const initialState: CreateEventState = {};
+const initialState: EventFormState = {};
 
 const inputClass =
   "rounded-lg border border-zinc-300 px-3 py-2 dark:border-zinc-700 dark:bg-zinc-900";
 
-function SubmitButton() {
+function toLocalDatetimeValue(iso: string) {
+  const d = new Date(iso);
+  const pad = (n: number) => String(n).padStart(2, "0");
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+}
+
+function SubmitButton({ isEdit }: { isEdit: boolean }) {
   const { pending } = useFormStatus();
   return (
     <button
@@ -32,23 +38,25 @@ function SubmitButton() {
       disabled={pending}
       className="rounded-lg bg-brand-orange px-4 py-2 text-sm font-medium text-white transition-colors hover:brightness-95 disabled:opacity-50  dark:hover:bg-brand-orange"
     >
-      {pending ? "Envoi..." : "Proposer l'événement"}
+      {pending ? "Envoi..." : isEdit ? "Enregistrer les modifications" : "Proposer l'événement"}
     </button>
   );
 }
 
-export function EventForm() {
-  const [state, formAction] = useActionState(createEvent, initialState);
-  const [type, setType] = useState<EventType>("seance");
-  const [showOnMap, setShowOnMap] = useState(false);
+export function EventForm({ event }: { event?: ClubEvent }) {
+  const isEdit = !!event;
+  const action = isEdit ? updateEvent.bind(null, event.id) : createEvent;
+  const [state, formAction] = useActionState(action, initialState);
+  const [type, setType] = useState<EventType>(event?.type ?? "seance");
+  const [showOnMap, setShowOnMap] = useState(event?.show_on_map ?? false);
   const [coords, setCoords] = useState<{ lat: number | null; lng: number | null }>({
-    lat: null,
-    lng: null,
+    lat: event?.latitude ?? null,
+    lng: event?.longitude ?? null,
   });
-  const [locationName, setLocationName] = useState("");
+  const [locationName, setLocationName] = useState(event?.location_name ?? "");
   const [geocoding, setGeocoding] = useState(false);
   const [geocodeError, setGeocodeError] = useState<string | null>(null);
-  const [repUnit, setRepUnit] = useState<RepUnit>("time");
+  const [repUnit, setRepUnit] = useState<RepUnit>(event?.rep_unit ?? "time");
 
   async function handleLocate() {
     if (!locationName.trim()) return;
@@ -69,13 +77,18 @@ export function EventForm() {
     }
   }
 
+  const durationHours = event?.duration_minutes ? Math.floor(event.duration_minutes / 60) : "";
+  const durationMins = event?.duration_minutes ? event.duration_minutes % 60 : "";
+
   return (
     <form action={formAction} className="flex flex-col gap-4">
-      <p className="rounded-lg bg-amber-50 px-3 py-2 text-sm text-amber-800 dark:bg-amber-950 dark:text-amber-200">
-        Votre proposition sera visible par le bureau et devra être validée par
-        un admin <strong>et</strong> un coach avant d&apos;apparaître pour tout
-        le club.
-      </p>
+      {!isEdit && (
+        <p className="rounded-lg bg-amber-50 px-3 py-2 text-sm text-amber-800 dark:bg-amber-950 dark:text-amber-200">
+          Votre proposition sera visible par le bureau et devra être validée par
+          un admin <strong>et</strong> un coach avant d&apos;apparaître pour tout
+          le club.
+        </p>
+      )}
 
       <label className="flex flex-col gap-1 text-sm">
         Type d&apos;événement
@@ -98,6 +111,7 @@ export function EventForm() {
           name="title"
           required
           minLength={3}
+          defaultValue={event?.title}
           placeholder="Ex : Fractionné 10x400m"
           className="rounded-lg border border-zinc-300 px-3 py-2 dark:border-zinc-700 dark:bg-zinc-900"
         />
@@ -108,6 +122,7 @@ export function EventForm() {
         <textarea
           name="description"
           rows={3}
+          defaultValue={event?.description ?? ""}
           placeholder="Détails, allure, groupe concerné..."
           className="rounded-lg border border-zinc-300 px-3 py-2 dark:border-zinc-700 dark:bg-zinc-900"
         />
@@ -119,6 +134,7 @@ export function EventForm() {
           type="datetime-local"
           name="starts_at"
           required
+          defaultValue={event ? toLocalDatetimeValue(event.starts_at) : undefined}
           className="rounded-lg border border-zinc-300 px-3 py-2 dark:border-zinc-700 dark:bg-zinc-900"
         />
       </label>
@@ -128,11 +144,25 @@ export function EventForm() {
           <div className="grid grid-cols-2 gap-2">
             <label className="flex flex-col gap-1 text-sm">
               Distance (km)
-              <input type="number" step="0.1" min="0" name="distance_km" className={inputClass} />
+              <input
+                type="number"
+                step="0.1"
+                min="0"
+                name="distance_km"
+                defaultValue={event?.distance_km ?? ""}
+                className={inputClass}
+              />
             </label>
             <label className="flex flex-col gap-1 text-sm">
               Dénivelé (m)
-              <input type="number" step="1" min="0" name="elevation_gain_m" className={inputClass} />
+              <input
+                type="number"
+                step="1"
+                min="0"
+                name="elevation_gain_m"
+                defaultValue={event?.elevation_gain_m ?? ""}
+                className={inputClass}
+              />
             </label>
           </div>
           <label className="flex flex-col gap-1 text-sm">
@@ -143,6 +173,7 @@ export function EventForm() {
                 step="1"
                 min="0"
                 name="duration_hours"
+                defaultValue={durationHours}
                 placeholder="h"
                 className={`w-full ${inputClass}`}
               />
@@ -153,6 +184,7 @@ export function EventForm() {
                 min="0"
                 max="59"
                 name="duration_mins"
+                defaultValue={durationMins}
                 placeholder="min"
                 className={`w-full ${inputClass}`}
               />
@@ -163,7 +195,7 @@ export function EventForm() {
           {type === "sortie" && (
             <label className="flex flex-col gap-1 text-sm">
               Niveau
-              <select name="difficulty" defaultValue="" className={inputClass}>
+              <select name="difficulty" defaultValue={event?.difficulty ?? ""} className={inputClass}>
                 <option value="">Non précisé</option>
                 {DIFFICULTY_OPTIONS.map((o) => (
                   <option key={o.value} value={o.value}>
@@ -180,6 +212,7 @@ export function EventForm() {
               <input
                 type="url"
                 name="external_link"
+                defaultValue={event?.external_link ?? ""}
                 placeholder="https://www.klikego.com/..."
                 className={inputClass}
               />
@@ -191,7 +224,7 @@ export function EventForm() {
       {type !== "autre" && (
         <label className="flex flex-col gap-1 text-sm">
           Type de terrain
-          <select name="terrain" defaultValue="" className={inputClass}>
+          <select name="terrain" defaultValue={event?.terrain ?? ""} className={inputClass}>
             <option value="">Non précisé</option>
             {TERRAIN_OPTIONS.map((o) => (
               <option key={o.value} value={o.value}>
@@ -209,6 +242,7 @@ export function EventForm() {
             <input
               name="seance_type"
               list="seance-type-suggestions"
+              defaultValue={event?.seance_type ?? ""}
               placeholder="Ex : Fractionné"
               className={inputClass}
             />
@@ -226,11 +260,25 @@ export function EventForm() {
             <div className="grid grid-cols-2 gap-2">
               <label className="flex flex-col gap-1 text-sm">
                 Durée (min)
-                <input type="number" step="1" min="0" name="warmup_minutes" className={inputClass} />
+                <input
+                  type="number"
+                  step="1"
+                  min="0"
+                  name="warmup_minutes"
+                  defaultValue={event?.warmup_minutes ?? ""}
+                  className={inputClass}
+                />
               </label>
               <label className="flex flex-col gap-1 text-sm">
                 % VMA
-                <input type="number" step="1" min="0" name="warmup_vma_pct" className={inputClass} />
+                <input
+                  type="number"
+                  step="1"
+                  min="0"
+                  name="warmup_vma_pct"
+                  defaultValue={event?.warmup_vma_pct ?? ""}
+                  className={inputClass}
+                />
               </label>
             </div>
           </fieldset>
@@ -242,11 +290,25 @@ export function EventForm() {
             <div className="grid grid-cols-2 gap-2">
               <label className="flex flex-col gap-1 text-sm">
                 Nombre de séries
-                <input type="number" step="1" min="0" name="series_count" className={inputClass} />
+                <input
+                  type="number"
+                  step="1"
+                  min="0"
+                  name="series_count"
+                  defaultValue={event?.series_count ?? ""}
+                  className={inputClass}
+                />
               </label>
               <label className="flex flex-col gap-1 text-sm">
                 Répétitions par série
-                <input type="number" step="1" min="0" name="reps_count" className={inputClass} />
+                <input
+                  type="number"
+                  step="1"
+                  min="0"
+                  name="reps_count"
+                  defaultValue={event?.reps_count ?? ""}
+                  className={inputClass}
+                />
               </label>
             </div>
             <label className="flex flex-col gap-1 text-sm">
@@ -265,22 +327,50 @@ export function EventForm() {
               {repUnit === "time" ? (
                 <label className="flex flex-col gap-1 text-sm">
                   Durée d&apos;une répétition (s)
-                  <input type="number" step="5" min="0" name="rep_time_seconds" className={inputClass} />
+                  <input
+                    type="number"
+                    step="5"
+                    min="0"
+                    name="rep_time_seconds"
+                    defaultValue={event?.rep_time_seconds ?? ""}
+                    className={inputClass}
+                  />
                 </label>
               ) : (
                 <label className="flex flex-col gap-1 text-sm">
                   Distance d&apos;une répétition (m)
-                  <input type="number" step="10" min="0" name="rep_distance_m" className={inputClass} />
+                  <input
+                    type="number"
+                    step="10"
+                    min="0"
+                    name="rep_distance_m"
+                    defaultValue={event?.rep_distance_m ?? ""}
+                    className={inputClass}
+                  />
                 </label>
               )}
               <label className="flex flex-col gap-1 text-sm">
                 % VMA en répétition
-                <input type="number" step="1" min="0" name="rep_vma_pct" className={inputClass} />
+                <input
+                  type="number"
+                  step="1"
+                  min="0"
+                  name="rep_vma_pct"
+                  defaultValue={event?.rep_vma_pct ?? ""}
+                  className={inputClass}
+                />
               </label>
             </div>
             <label className="flex flex-col gap-1 text-sm">
               Dénivelé par répétition (m, optionnel)
-              <input type="number" step="1" min="0" name="rep_elevation_m" className={inputClass} />
+              <input
+                type="number"
+                step="1"
+                min="0"
+                name="rep_elevation_m"
+                defaultValue={event?.rep_elevation_m ?? ""}
+                className={inputClass}
+              />
             </label>
           </fieldset>
 
@@ -296,6 +386,7 @@ export function EventForm() {
                   step="5"
                   min="0"
                   name="rest_between_reps_seconds"
+                  defaultValue={event?.rest_between_reps_seconds ?? ""}
                   className={inputClass}
                 />
               </label>
@@ -306,12 +397,20 @@ export function EventForm() {
                   step="0.5"
                   min="0"
                   name="rest_between_series_minutes"
+                  defaultValue={event?.rest_between_series_minutes ?? ""}
                   className={inputClass}
                 />
               </label>
               <label className="flex flex-col gap-1 text-sm">
                 % VMA au repos
-                <input type="number" step="1" min="0" name="rest_vma_pct" className={inputClass} />
+                <input
+                  type="number"
+                  step="1"
+                  min="0"
+                  name="rest_vma_pct"
+                  defaultValue={event?.rest_vma_pct ?? ""}
+                  className={inputClass}
+                />
               </label>
             </div>
           </fieldset>
@@ -323,11 +422,25 @@ export function EventForm() {
             <div className="grid grid-cols-2 gap-2">
               <label className="flex flex-col gap-1 text-sm">
                 Durée (min)
-                <input type="number" step="1" min="0" name="cooldown_minutes" className={inputClass} />
+                <input
+                  type="number"
+                  step="1"
+                  min="0"
+                  name="cooldown_minutes"
+                  defaultValue={event?.cooldown_minutes ?? ""}
+                  className={inputClass}
+                />
               </label>
               <label className="flex flex-col gap-1 text-sm">
                 % VMA
-                <input type="number" step="1" min="0" name="cooldown_vma_pct" className={inputClass} />
+                <input
+                  type="number"
+                  step="1"
+                  min="0"
+                  name="cooldown_vma_pct"
+                  defaultValue={event?.cooldown_vma_pct ?? ""}
+                  className={inputClass}
+                />
               </label>
             </div>
           </fieldset>
@@ -383,7 +496,7 @@ export function EventForm() {
         <p className="text-sm text-red-600 dark:text-red-400">{state.error}</p>
       )}
 
-      <SubmitButton />
+      <SubmitButton isEdit={isEdit} />
     </form>
   );
 }

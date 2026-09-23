@@ -93,7 +93,14 @@ export type Announcement = {
   created_at: string;
 };
 
-export type ShopReservationStatus = "pending" | "fulfilled" | "cancelled";
+export type ShopReservationStatus =
+  | "pending"
+  | "enregistree"
+  | "en_cours"
+  | "payee"
+  | "terminee"
+  | "fulfilled"
+  | "cancelled";
 
 export type ShopItem = {
   id: string;
@@ -111,6 +118,7 @@ export type ShopReservation = {
   item_id: string;
   user_id: string;
   note: string | null;
+  quantity: number;
   status: ShopReservationStatus;
   handled_by: string | null;
   handled_at: string | null;
@@ -123,10 +131,23 @@ export type ShopReservationWithDetails = ShopReservation & {
 };
 
 export const SHOP_RESERVATION_LABELS: Record<ShopReservationStatus, string> = {
-  pending: "En attente",
+  pending: "À traiter",
+  enregistree: "Enregistrée",
+  en_cours: "En cours",
+  payee: "Payée",
+  terminee: "Terminée",
   fulfilled: "Remis",
-  cancelled: "Annulé",
+  cancelled: "Annulée",
 };
+
+export const SHOP_RESERVATION_STATUS_OPTIONS: ShopReservationStatus[] = [
+  "pending",
+  "enregistree",
+  "en_cours",
+  "payee",
+  "terminee",
+  "cancelled",
+];
 
 export const EVENT_TYPE_LABELS: Record<EventType, string> = {
   seance: "Séance",

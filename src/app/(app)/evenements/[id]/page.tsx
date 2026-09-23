@@ -1,4 +1,6 @@
 import { notFound } from "next/navigation";
+import Link from "next/link";
+import Image from "next/image";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentProfile } from "@/lib/supabase/current-profile";
 import { EventMap } from "@/components/EventMap";
@@ -7,7 +9,14 @@ import { ApprovalActions } from "@/components/ApprovalActions";
 import { CheckInToggle } from "@/components/CheckInToggle";
 import { EventChat } from "@/components/EventChat";
 import { SeancePlanCard } from "@/components/SeancePlanCard";
-import { LocationPinIcon } from "@/components/icons";
+import { EventActions } from "@/components/EventActions";
+import {
+  LocationPinIcon,
+  ArrowLeftIcon,
+  ClockIcon,
+  RulerIcon,
+  MountainIcon,
+} from "@/components/icons";
 import {
   EVENT_TYPE_LABELS,
   RSVP_LABELS,
@@ -62,57 +71,97 @@ export default async function EventDetailPage(props: PageProps<"/evenements/[id]
   };
 
   const stats = [
-    event.distance_km ? { label: "Distance", value: `${event.distance_km} km` } : null,
-    event.duration_minutes ? { label: "Durée", value: `${event.duration_minutes} min` } : null,
-    event.elevation_gain_m ? { label: "Dénivelé", value: `${event.elevation_gain_m} m D+` } : null,
-  ].filter(Boolean) as { label: string; value: string }[];
+    event.duration_minutes
+      ? { label: "Durée", value: `${event.duration_minutes} min`, icon: ClockIcon }
+      : null,
+    event.distance_km ? { label: "Distance", value: `${event.distance_km} km`, icon: RulerIcon } : null,
+    event.elevation_gain_m
+      ? { label: "Dénivelé", value: `${event.elevation_gain_m} m D+`, icon: MountainIcon }
+      : null,
+  ].filter(Boolean) as { label: string; value: string; icon: typeof ClockIcon }[];
+
+  const day = date.toLocaleDateString("fr-FR", { day: "2-digit" });
+  const month = date
+    .toLocaleDateString("fr-FR", { month: "short" })
+    .replace(".", "")
+    .toUpperCase();
 
   return (
     <div className="flex flex-col gap-6">
-      <div className="overflow-hidden rounded-2xl bg-gradient-to-br from-brand-blue-dark to-brand-blue p-5 text-white">
-        <div className="flex flex-wrap gap-1.5">
-          <span className="w-fit rounded-full bg-white/15 px-2.5 py-0.5 text-xs font-semibold uppercase tracking-wide">
-            {EVENT_TYPE_LABELS[event.type]}
-          </span>
-          {event.terrain && (
-            <span className="w-fit rounded-full bg-white/15 px-2.5 py-0.5 text-xs font-medium">
-              {TERRAIN_LABELS[event.terrain]}
+      <div className="relative -mx-4 -mt-6 h-56 overflow-hidden sm:mx-0 sm:mt-0 sm:rounded-2xl">
+        <Image
+          src="/images/hero-trail.webp"
+          alt=""
+          fill
+          sizes="100vw"
+          className="object-cover"
+          priority
+        />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-black/5 to-transparent" />
+        <Link
+          href="/evenements"
+          aria-label="Retour"
+          className="absolute left-3 top-3 flex h-9 w-9 items-center justify-center rounded-full bg-black/30 text-white backdrop-blur-sm"
+        >
+          <ArrowLeftIcon className="h-5 w-5" />
+        </Link>
+      </div>
+
+      <div className="flex items-start gap-3">
+        <div className="flex w-14 shrink-0 flex-col items-center justify-center rounded-xl bg-brand-orange py-2 text-white">
+          <span className="text-[10px] font-semibold uppercase">{month}</span>
+          <span className="text-lg font-bold leading-none">{day}</span>
+        </div>
+        <div className="min-w-0 flex-1">
+          <div className="flex flex-wrap gap-1.5">
+            <span className="w-fit rounded-full bg-brand-blue/10 px-2.5 py-0.5 text-xs font-semibold uppercase tracking-wide text-brand-blue-dark dark:bg-brand-blue/20 dark:text-blue-300">
+              {EVENT_TYPE_LABELS[event.type]}
             </span>
+            {event.terrain && (
+              <span className="w-fit rounded-full bg-zinc-100 px-2.5 py-0.5 text-xs font-medium text-zinc-600 dark:bg-zinc-900 dark:text-zinc-300">
+                {TERRAIN_LABELS[event.terrain]}
+              </span>
+            )}
+            {event.difficulty && (
+              <span className="w-fit rounded-full bg-zinc-100 px-2.5 py-0.5 text-xs font-medium text-zinc-600 dark:bg-zinc-900 dark:text-zinc-300">
+                {DIFFICULTY_LABELS[event.difficulty]}
+              </span>
+            )}
+          </div>
+          <h1 className="mt-1.5 text-xl font-bold text-zinc-900 dark:text-zinc-50">{event.title}</h1>
+          <p className="mt-1 text-sm text-zinc-500">
+            {date.toLocaleDateString("fr-FR", { weekday: "long", day: "numeric", month: "long" })}
+            {" · "}
+            {date.toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" })}
+          </p>
+          {event.location_name && (
+            <p className="mt-1 flex items-center gap-1 text-sm text-zinc-500">
+              <LocationPinIcon className="h-4 w-4 shrink-0" /> {event.location_name}
+            </p>
           )}
-          {event.difficulty && (
-            <span className="w-fit rounded-full bg-white/15 px-2.5 py-0.5 text-xs font-medium">
-              {DIFFICULTY_LABELS[event.difficulty]}
-            </span>
+          {event.creator && (
+            <p className="mt-1 text-xs text-zinc-400">Proposé par {event.creator.full_name}</p>
+          )}
+          {event.status === "approved" && (
+            <p className="mt-1.5 w-fit rounded-full bg-brand-yellow/20 px-2.5 py-0.5 text-xs font-medium text-brand-blue-dark dark:text-brand-yellow">
+              👥 {grouped.going.length} participant{grouped.going.length > 1 ? "s" : ""}
+            </p>
           )}
         </div>
-        <h1 className="mt-2 text-2xl font-bold">{event.title}</h1>
-        <p className="mt-1 text-sm text-white/85">
-          {date.toLocaleDateString("fr-FR", { weekday: "long", day: "numeric", month: "long", year: "numeric" })}
-          {" à "}
-          {date.toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" })}
-        </p>
-        {event.location_name && (
-          <p className="mt-1 flex items-center gap-1 text-sm text-white/85">
-            <LocationPinIcon className="h-4 w-4 shrink-0" /> {event.location_name}
-          </p>
-        )}
-        {event.creator && (
-          <p className="mt-2 text-xs text-white/60">Proposé par {event.creator.full_name}</p>
-        )}
-        {event.status === "approved" && (
-          <p className="mt-2 w-fit rounded-full bg-white/15 px-2.5 py-0.5 text-xs font-medium">
-            👥 {grouped.going.length} participant{grouped.going.length > 1 ? "s" : ""}
-          </p>
-        )}
       </div>
+
+      {(event.created_by === current.userId || isReviewer) && (
+        <EventActions eventId={event.id} />
+      )}
 
       {stats.length > 0 && (
         <div className="grid grid-cols-3 gap-2">
           {stats.map((s) => (
             <div
               key={s.label}
-              className="flex flex-col items-center gap-0.5 rounded-2xl border border-zinc-200 bg-white py-3 dark:border-zinc-800 dark:bg-zinc-950"
+              className="flex flex-col items-center gap-1 rounded-2xl border border-zinc-200 bg-white py-3 dark:border-zinc-800 dark:bg-zinc-950"
             >
+              <s.icon className="h-4 w-4 text-brand-blue-dark dark:text-blue-300" />
               <span className="text-sm font-bold text-brand-blue-dark dark:text-blue-300">{s.value}</span>
               <span className="text-[11px] text-zinc-500">{s.label}</span>
             </div>

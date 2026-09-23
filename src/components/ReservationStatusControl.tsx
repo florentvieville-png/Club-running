@@ -3,9 +3,11 @@
 import { useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { updateReservationStatus } from "@/app/actions/shop";
-import { SHOP_RESERVATION_LABELS, type ShopReservationStatus } from "@/lib/types/database";
-
-const OPTIONS: ShopReservationStatus[] = ["pending", "fulfilled", "cancelled"];
+import {
+  SHOP_RESERVATION_LABELS,
+  SHOP_RESERVATION_STATUS_OPTIONS,
+  type ShopReservationStatus,
+} from "@/lib/types/database";
 
 export function ReservationStatusControl({
   reservationId,
@@ -30,7 +32,7 @@ export function ReservationStatusControl({
       }}
       className="rounded-lg border border-zinc-300 bg-transparent px-2 py-1 text-xs dark:border-zinc-700"
     >
-      {OPTIONS.map((o) => (
+      {SHOP_RESERVATION_STATUS_OPTIONS.map((o) => (
         <option key={o} value={o}>
           {SHOP_RESERVATION_LABELS[o]}
         </option>

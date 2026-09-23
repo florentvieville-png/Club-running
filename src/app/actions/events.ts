@@ -54,17 +54,11 @@ const createEventSchema = z
     path: ["show_on_map"],
   });
 
-export type CreateEventState = {
+export type EventFormState = {
   error?: string;
 };
 
-export async function createEvent(
-  _prevState: CreateEventState,
-  formData: FormData
-): Promise<CreateEventState> {
-  const current = await getCurrentProfile();
-  if (!current) redirect("/login");
-
+function parseEventForm(formData: FormData) {
   const field = (name: string) => formData.get(name) || undefined;
 
   const durationHours = Number(formData.get("duration_hours") || 0);
@@ -86,7 +80,7 @@ export async function createEvent(
     elevation_gain_m: field("elevation_gain_m"),
     terrain: field("terrain"),
     difficulty: field("difficulty"),
-    seance_type: formData.get("seance_type"),
+    seance_type: formData.get("seance_type") ?? "",
     warmup_minutes: field("warmup_minutes"),
     warmup_vma_pct: field("warmup_vma_pct"),
     cooldown_minutes: field("cooldown_minutes"),
@@ -108,13 +102,11 @@ export async function createEvent(
     const issue = parsed.error.issues[0];
     const fieldPath = issue?.path?.join(".");
     const detail = fieldPath ? `Champ "${fieldPath}" : ${issue.message}` : issue?.message;
-    return { error: detail ?? "Formulaire invalide" };
+    return { error: detail ?? "Formulaire invalide" } as const;
   }
 
-  const supabase = await createClient();
-  const { data, error } = await supabase
-    .from("events")
-    .insert({
+  return {
+    data: {
       type: parsed.data.type,
       title: parsed.data.title,
       description: parsed.data.description || null,
@@ -144,8 +136,24 @@ export async function createEvent(
       rest_between_reps_seconds: parsed.data.rest_between_reps_seconds ?? null,
       rest_between_series_minutes: parsed.data.rest_between_series_minutes ?? null,
       rest_vma_pct: parsed.data.rest_vma_pct ?? null,
-      created_by: current.userId,
-    })
+    },
+  } as const;
+}
+
+export async function createEvent(
+  _prevState: EventFormState,
+  formData: FormData
+): Promise<EventFormState> {
+  const current = await getCurrentProfile();
+  if (!current) redirect("/login");
+
+  const parsed = parseEventForm(formData);
+  if ("error" in parsed) return { error: parsed.error };
+
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("events")
+    .insert({ ...parsed.data, created_by: current.userId })
     .select("id")
     .single();
 
@@ -155,6 +163,62 @@ export async function createEvent(
 
   revalidatePath("/evenements");
   redirect(`/evenements/${data.id}`);
+}
+
+export async function updateEvent(
+  eventId: string,
+  _prevState: EventFormState,
+  formData: FormData
+): Promise<EventFormState> {
+  const current = await getCurrentProfile();
+  if (!current) redirect("/login");
+
+  const supabase = await createClient();
+  const { data: existing } = await supabase
+    .from("events")
+    .select("created_by")
+    .eq("id", eventId)
+    .maybeSingle();
+
+  if (!existing) return { error: "Événement introuvable" };
+  const isReviewer = current.profile.role === "admin" || current.profile.role === "coach";
+  if (existing.created_by !== current.userId && !isReviewer) {
+    return { error: "Vous n'êtes pas autorisé à modifier cet événement" };
+  }
+
+  const parsed = parseEventForm(formData);
+  if ("error" in parsed) return { error: parsed.error };
+
+  const { error } = await supabase.from("events").update(parsed.data).eq("id", eventId);
+  if (error) return { error: error.message };
+
+  revalidatePath("/evenements");
+  revalidatePath(`/evenements/${eventId}`);
+  redirect(`/evenements/${eventId}`);
+}
+
+export async function deleteEvent(eventId: string) {
+  const current = await getCurrentProfile();
+  if (!current) redirect("/login");
+
+  const supabase = await createClient();
+  const { data: existing } = await supabase
+    .from("events")
+    .select("created_by")
+    .eq("id", eventId)
+    .maybeSingle();
+
+  if (!existing) throw new Error("Événement introuvable");
+  const isReviewer = current.profile.role === "admin" || current.profile.role === "coach";
+  if (existing.created_by !== current.userId && !isReviewer) {
+    throw new Error("Vous n'êtes pas autorisé à supprimer cet événement");
+  }
+
+  const { error } = await supabase.from("events").delete().eq("id", eventId);
+  if (error) throw new Error(error.message);
+
+  revalidatePath("/evenements");
+  redirect("/evenements");
 }
 
 export async function approveEvent(eventId: string) {

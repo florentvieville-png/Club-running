@@ -1,17 +1,27 @@
 import Link from "next/link";
+import Image from "next/image";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentProfile } from "@/lib/supabase/current-profile";
 import { EventCard } from "@/components/EventCard";
 import { AnnouncementForm } from "@/components/AnnouncementForm";
 import { DeleteAnnouncementButton } from "@/components/DeleteAnnouncementButton";
-import { CalendarIcon, ShopIcon, UserIcon, ChevronRightIcon } from "@/components/icons";
-import type { Announcement, EventWithCreator } from "@/lib/types/database";
+import { SocialLinks } from "@/components/SocialLinks";
+import {
+  CalendarIcon,
+  ShopIcon,
+  UserIcon,
+  RunIcon,
+  ChevronRightIcon,
+  LocationPinIcon,
+} from "@/components/icons";
+import { EVENT_TYPE_LABELS, type Announcement, type EventWithCreator } from "@/lib/types/database";
 
 const TILES = [
-  { href: "/evenements", label: "Événements", sub: "Voir le calendrier", icon: CalendarIcon },
+  { href: "/evenements?view=calendar", label: "Événements", sub: "Voir le calendrier", icon: CalendarIcon },
+  { href: "/evenements?type=seance", label: "Séances", sub: "Le programme", icon: RunIcon },
+  { href: "/membres", label: "Adhérents", sub: "L'annuaire du club", icon: UserIcon },
   { href: "/boutique", label: "Boutique", sub: "Équipements du club", icon: ShopIcon },
-  { href: "/membres", label: "Membres", sub: "L'annuaire du club", icon: UserIcon },
 ];
 
 export default async function DashboardPage() {
@@ -44,9 +54,18 @@ export default async function DashboardPage() {
 
   return (
     <div className="flex flex-col gap-8">
-      <div className="overflow-hidden rounded-2xl bg-gradient-to-br from-brand-blue-dark to-brand-blue px-5 py-5 text-white">
-        <h1 className="text-xl font-bold">Bonjour {firstName} 👋</h1>
-        <p className="mt-0.5 text-sm text-white/80">Voici ce qui se passe au club en ce moment.</p>
+      <div className="flex items-center gap-3 overflow-hidden rounded-2xl bg-gradient-to-br from-brand-blue-dark to-brand-blue px-5 py-5 text-white">
+        <Image
+          src="/icons/logo-64.png"
+          alt="La Loriolade"
+          width={44}
+          height={44}
+          className="shrink-0 rounded-full"
+        />
+        <div>
+          <h1 className="text-xl font-bold">Bonjour {firstName} 👋</h1>
+          <p className="mt-0.5 text-sm text-white/80">Voici ce qui se passe au club en ce moment.</p>
+        </div>
       </div>
 
       {nextEvent && (
@@ -54,21 +73,56 @@ export default async function DashboardPage() {
           <h2 className="text-sm font-semibold uppercase tracking-wide text-zinc-500">
             Prochain rendez-vous
           </h2>
-          <EventCard event={nextEvent} />
+          <Link
+            href={`/evenements/${nextEvent.id}`}
+            className="flex items-center gap-3 rounded-2xl border border-zinc-200 bg-white p-4 transition-shadow hover:shadow-md dark:border-zinc-800 dark:bg-zinc-950"
+          >
+            <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-brand-orange text-white">
+              <RunIcon className="h-6 w-6" />
+            </span>
+            <div className="min-w-0 flex-1">
+              <p className="text-xs font-medium text-zinc-500">{EVENT_TYPE_LABELS[nextEvent.type]}</p>
+              <p className="truncate font-semibold text-zinc-900 dark:text-zinc-50">{nextEvent.title}</p>
+              <p className="mt-0.5 text-xs text-zinc-500">
+                {new Date(nextEvent.starts_at).toLocaleDateString("fr-FR", {
+                  weekday: "short",
+                  day: "numeric",
+                  month: "short",
+                })}
+                {" · "}
+                {new Date(nextEvent.starts_at).toLocaleTimeString("fr-FR", {
+                  hour: "2-digit",
+                  minute: "2-digit",
+                })}
+              </p>
+              {nextEvent.location_name && (
+                <p className="mt-0.5 flex items-center gap-1 text-xs text-zinc-500">
+                  <LocationPinIcon className="h-3.5 w-3.5 shrink-0" />
+                  <span className="truncate">{nextEvent.location_name}</span>
+                </p>
+              )}
+            </div>
+            <ChevronRightIcon className="h-5 w-5 shrink-0 text-zinc-300" />
+          </Link>
         </section>
       )}
 
-      <section className="grid grid-cols-3 gap-3">
+      <section className="grid grid-cols-2 gap-3">
         {TILES.map((tile) => (
           <Link
             key={tile.href}
             href={tile.href}
-            className="flex flex-col items-center gap-1.5 rounded-2xl border border-zinc-200 bg-white p-3 text-center transition-shadow hover:shadow-md dark:border-zinc-800 dark:bg-zinc-950"
+            className="flex items-center gap-3 rounded-2xl border border-zinc-200 bg-white p-3.5 transition-shadow hover:shadow-md dark:border-zinc-800 dark:bg-zinc-950"
           >
-            <span className="flex h-10 w-10 items-center justify-center rounded-full bg-brand-orange/10 text-brand-orange">
+            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-brand-orange/10 text-brand-orange">
               <tile.icon className="h-5 w-5" />
             </span>
-            <span className="text-xs font-semibold text-zinc-800 dark:text-zinc-100">{tile.label}</span>
+            <span className="min-w-0">
+              <span className="block truncate text-sm font-semibold text-zinc-800 dark:text-zinc-100">
+                {tile.label}
+              </span>
+              <span className="block truncate text-xs text-zinc-500">{tile.sub}</span>
+            </span>
           </Link>
         ))}
       </section>
@@ -138,6 +192,13 @@ export default async function DashboardPage() {
             </div>
           ))}
         </div>
+      </section>
+
+      <section className="flex flex-col gap-2 border-t border-zinc-200 pt-6 dark:border-zinc-800">
+        <h2 className="text-sm font-semibold uppercase tracking-wide text-zinc-500">
+          Suivez le club
+        </h2>
+        <SocialLinks />
       </section>
     </div>
   );

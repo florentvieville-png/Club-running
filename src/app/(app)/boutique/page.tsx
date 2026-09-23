@@ -1,16 +1,14 @@
+import Link from "next/link";
 import { redirect } from "next/navigation";
+import Image from "next/image";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentProfile } from "@/lib/supabase/current-profile";
 import { ReservationButton } from "@/components/ReservationButton";
 import { ShopItemForm } from "@/components/ShopItemForm";
-import { ReservationStatusControl } from "@/components/ReservationStatusControl";
+import { ShopItemActions } from "@/components/ShopItemActions";
 import { ToggleItemActive } from "@/components/ToggleItemActive";
-import { ShopIcon } from "@/components/icons";
-import {
-  SHOP_RESERVATION_LABELS,
-  type ShopItem,
-  type ShopReservationWithDetails,
-} from "@/lib/types/database";
+import { ShopIcon, ChevronRightIcon } from "@/components/icons";
+import type { ShopItem } from "@/lib/types/database";
 
 export default async function BoutiquePage() {
   const current = await getCurrentProfile();
@@ -26,16 +24,6 @@ export default async function BoutiquePage() {
   const items = (itemsData ?? []) as ShopItem[];
   const visibleItems = isReviewer ? items : items.filter((i) => i.active);
 
-  let reservations: ShopReservationWithDetails[] = [];
-  if (isReviewer) {
-    const { data: reservationsData, error: reservationsError } = await supabase
-      .from("shop_reservations")
-      .select("*, item:shop_items(id, name), member:profiles!shop_reservations_user_id_fkey(id, full_name)")
-      .order("created_at", { ascending: false });
-    if (reservationsError) console.error("shop_reservations select failed:", reservationsError.message);
-    reservations = (reservationsData ?? []) as unknown as ShopReservationWithDetails[];
-  }
-
   return (
     <div className="flex flex-col gap-8">
       <div>
@@ -46,33 +34,53 @@ export default async function BoutiquePage() {
         </p>
       </div>
 
-      <section className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+      <div className="relative overflow-hidden rounded-2xl">
+        <div className="relative h-36 w-full">
+          <Image src="/images/hero-trail.webp" alt="" fill sizes="100vw" className="object-cover" />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-black/10" />
+        </div>
+        <div className="absolute inset-0 flex flex-col justify-center gap-1 px-5 text-white">
+          <p className="text-lg font-bold">Collection La Loriolade</p>
+          <p className="text-sm text-white/85">Le style du club, sur et en dehors des sentiers.</p>
+        </div>
+      </div>
+
+      <section className="grid grid-cols-2 gap-3">
         {visibleItems.length === 0 && (
-          <p className="text-sm text-zinc-400">Aucun article disponible pour l&apos;instant.</p>
+          <p className="col-span-2 text-sm text-zinc-400">Aucun article disponible pour l&apos;instant.</p>
         )}
         {visibleItems.map((item) => (
           <div
             key={item.id}
-            className={`flex flex-col gap-2 overflow-hidden rounded-2xl border border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-950 ${
+            className={`flex flex-col overflow-hidden rounded-2xl border border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-950 ${
               !item.active ? "opacity-50" : ""
             }`}
           >
             {item.image_url ? (
               // eslint-disable-next-line @next/next/no-img-element
-              <img src={item.image_url} alt={item.name} className="h-40 w-full object-cover" />
+              <img src={item.image_url} alt={item.name} className="aspect-square w-full object-cover" />
             ) : (
-              <div className="flex h-32 w-full items-center justify-center bg-gradient-to-br from-brand-blue-dark to-brand-blue">
-                <ShopIcon className="h-10 w-10 text-white/70" />
+              <div className="flex aspect-square w-full items-center justify-center bg-gradient-to-br from-brand-blue-dark to-brand-blue">
+                <ShopIcon className="h-8 w-8 text-white/70" />
               </div>
             )}
-            <div className="flex flex-col gap-2 p-4 pt-1">
-              <div className="flex items-start justify-between gap-2">
-                <h3 className="font-semibold">{item.name}</h3>
+            <div className="flex flex-1 flex-col gap-1.5 p-3">
+              <div className="flex items-start justify-between gap-1">
+                <h3 className="text-sm font-semibold leading-tight">{item.name}</h3>
                 {isReviewer && <ToggleItemActive itemId={item.id} active={item.active} />}
               </div>
-              {item.description && <p className="text-sm text-zinc-600 dark:text-zinc-300">{item.description}</p>}
-              {item.price_label && <p className="text-sm font-semibold text-brand-orange">{item.price_label}</p>}
-              {item.active && <ReservationButton itemId={item.id} />}
+              {item.price_label && (
+                <p className="text-sm font-semibold text-brand-orange">{item.price_label}</p>
+              )}
+              {item.description && (
+                <p className="line-clamp-2 text-xs text-zinc-500">{item.description}</p>
+              )}
+              {item.active && (
+                <div className="mt-auto pt-1">
+                  <ReservationButton itemId={item.id} />
+                </div>
+              )}
+              {isReviewer && <ShopItemActions item={item} />}
             </div>
           </div>
         ))}
@@ -87,30 +95,16 @@ export default async function BoutiquePage() {
             <ShopItemForm />
           </section>
 
-          <section className="flex flex-col gap-3">
-            <h2 className="text-sm font-semibold uppercase tracking-wide text-zinc-500">
-              Demandes de réservation
-            </h2>
-            {reservations.length === 0 && (
-              <p className="text-sm text-zinc-400">Aucune demande pour l&apos;instant.</p>
-            )}
-            <div className="flex flex-col divide-y divide-zinc-200 rounded-xl border border-zinc-200 dark:divide-zinc-800 dark:border-zinc-800">
-              {reservations.map((r) => (
-                <div key={r.id} className="flex items-center justify-between gap-3 p-3">
-                  <div>
-                    <p className="text-sm font-medium">
-                      {r.item?.name ?? "Article supprimé"} — {r.member?.full_name ?? "Membre"}
-                    </p>
-                    {r.note && <p className="text-xs text-zinc-500">{r.note}</p>}
-                    <p className="text-xs text-zinc-400">
-                      {new Date(r.created_at).toLocaleDateString("fr-FR")} · {SHOP_RESERVATION_LABELS[r.status]}
-                    </p>
-                  </div>
-                  <ReservationStatusControl reservationId={r.id} status={r.status} />
-                </div>
-              ))}
+          <Link
+            href="/boutique/demandes"
+            className="flex items-center justify-between gap-2 rounded-2xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-950"
+          >
+            <div>
+              <p className="font-semibold text-zinc-900 dark:text-zinc-50">Gérer les demandes</p>
+              <p className="text-sm text-zinc-500">Statuts, quantités et export pour les commandes</p>
             </div>
-          </section>
+            <ChevronRightIcon className="h-5 w-5 shrink-0 text-zinc-300" />
+          </Link>
         </>
       )}
     </div>

@@ -28,10 +28,11 @@ export default async function BoutiquePage() {
 
   let reservations: ShopReservationWithDetails[] = [];
   if (isReviewer) {
-    const { data: reservationsData } = await supabase
+    const { data: reservationsData, error: reservationsError } = await supabase
       .from("shop_reservations")
-      .select("*, item:shop_items(id, name), member:profiles(id, full_name)")
+      .select("*, item:shop_items(id, name), member:profiles!shop_reservations_user_id_fkey(id, full_name)")
       .order("created_at", { ascending: false });
+    if (reservationsError) console.error("shop_reservations select failed:", reservationsError.message);
     reservations = (reservationsData ?? []) as unknown as ShopReservationWithDetails[];
   }
 

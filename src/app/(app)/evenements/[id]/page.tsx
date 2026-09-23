@@ -35,10 +35,11 @@ export default async function EventDetailPage(props: PageProps<"/evenements/[id]
   if (!eventData) notFound();
   const event = eventData as unknown as EventWithCreator;
 
-  const { data: rsvpData } = await supabase
+  const { data: rsvpData, error: rsvpError } = await supabase
     .from("event_rsvp")
-    .select("*, profile:profiles(id, full_name)")
+    .select("*, profile:profiles!event_rsvp_user_id_fkey(id, full_name)")
     .eq("event_id", id);
+  if (rsvpError) console.error("event_rsvp select failed:", rsvpError.message);
 
   const rsvps = (rsvpData ?? []) as unknown as RsvpRow[];
   const myRsvp = rsvps.find((r) => r.user_id === current.userId)?.status ?? null;

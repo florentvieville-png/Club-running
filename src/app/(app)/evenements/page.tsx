@@ -8,6 +8,7 @@ const TABS: { value: EventType | "all"; label: string }[] = [
   { value: "all", label: "Toutes" },
   { value: "seance", label: "Séances" },
   { value: "course", label: "Courses" },
+  { value: "sortie", label: "Sorties" },
   { value: "autre", label: "Autres" },
 ];
 

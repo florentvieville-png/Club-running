@@ -1,7 +1,9 @@
 export type UserRole = "runner" | "coach" | "admin";
-export type EventType = "seance" | "course" | "autre";
+export type EventType = "seance" | "course" | "sortie" | "autre";
 export type EventStatus = "pending" | "approved" | "rejected";
 export type RsvpStatus = "going" | "maybe" | "not_going";
+export type TerrainType = "route" | "chemin" | "trail";
+export type DifficultyLevel = "debutant" | "intermediaire" | "confirme";
 
 export type Profile = {
   id: string;
@@ -28,6 +30,8 @@ export type ClubEvent = {
   distance_km: number | null;
   duration_minutes: number | null;
   elevation_gain_m: number | null;
+  terrain: TerrainType | null;
+  difficulty: DifficultyLevel | null;
   seance_type: string | null;
   warmup_minutes: number | null;
   warmup_vma_pct: number | null;
@@ -36,7 +40,7 @@ export type ClubEvent = {
   series_count: number | null;
   reps_count: number | null;
   rep_unit: RepUnit | null;
-  rep_time_minutes: number | null;
+  rep_time_seconds: number | null;
   rep_distance_m: number | null;
   rep_elevation_m: number | null;
   rep_vma_pct: number | null;
@@ -127,7 +131,20 @@ export const SHOP_RESERVATION_LABELS: Record<ShopReservationStatus, string> = {
 export const EVENT_TYPE_LABELS: Record<EventType, string> = {
   seance: "Séance",
   course: "Course",
+  sortie: "Sortie",
   autre: "Autre",
+};
+
+export const TERRAIN_LABELS: Record<TerrainType, string> = {
+  route: "Route",
+  chemin: "Chemin",
+  trail: "Trail",
+};
+
+export const DIFFICULTY_LABELS: Record<DifficultyLevel, string> = {
+  debutant: "Débutant",
+  intermediaire: "Intermédiaire",
+  confirme: "Confirmé",
 };
 
 export const RSVP_LABELS: Record<RsvpStatus, string> = {

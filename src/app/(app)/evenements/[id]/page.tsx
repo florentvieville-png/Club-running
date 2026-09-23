@@ -11,6 +11,8 @@ import { LocationPinIcon } from "@/components/icons";
 import {
   EVENT_TYPE_LABELS,
   RSVP_LABELS,
+  TERRAIN_LABELS,
+  DIFFICULTY_LABELS,
   type EventWithCreator,
   type EventRsvp,
   type Profile,
@@ -68,9 +70,21 @@ export default async function EventDetailPage(props: PageProps<"/evenements/[id]
   return (
     <div className="flex flex-col gap-6">
       <div className="overflow-hidden rounded-2xl bg-gradient-to-br from-brand-blue-dark to-brand-blue p-5 text-white">
-        <span className="w-fit rounded-full bg-white/15 px-2.5 py-0.5 text-xs font-semibold uppercase tracking-wide">
-          {EVENT_TYPE_LABELS[event.type]}
-        </span>
+        <div className="flex flex-wrap gap-1.5">
+          <span className="w-fit rounded-full bg-white/15 px-2.5 py-0.5 text-xs font-semibold uppercase tracking-wide">
+            {EVENT_TYPE_LABELS[event.type]}
+          </span>
+          {event.terrain && (
+            <span className="w-fit rounded-full bg-white/15 px-2.5 py-0.5 text-xs font-medium">
+              {TERRAIN_LABELS[event.terrain]}
+            </span>
+          )}
+          {event.difficulty && (
+            <span className="w-fit rounded-full bg-white/15 px-2.5 py-0.5 text-xs font-medium">
+              {DIFFICULTY_LABELS[event.difficulty]}
+            </span>
+          )}
+        </div>
         <h1 className="mt-2 text-2xl font-bold">{event.title}</h1>
         <p className="mt-1 text-sm text-white/85">
           {date.toLocaleDateString("fr-FR", { weekday: "long", day: "numeric", month: "long", year: "numeric" })}

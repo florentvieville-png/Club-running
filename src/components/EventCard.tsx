@@ -5,6 +5,7 @@ import { LocationPinIcon } from "@/components/icons";
 const TYPE_DOT: Record<string, string> = {
   seance: "bg-brand-blue",
   course: "bg-brand-orange",
+  sortie: "bg-emerald-500",
   autre: "bg-zinc-400",
 };
 

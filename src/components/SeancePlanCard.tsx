@@ -1,4 +1,4 @@
-import { speedToPace, targetSpeedKmh, formatMinutes } from "@/lib/pace";
+import { speedToPace, targetSpeedKmh, formatMinutes, formatSeconds } from "@/lib/pace";
 import type { ClubEvent } from "@/lib/types/database";
 
 function PhaseRow({
@@ -47,8 +47,8 @@ export function SeancePlanCard({ event, myVma }: { event: ClubEvent; myVma: numb
   const repDetail =
     event.rep_unit === "distance" && event.rep_distance_m
       ? `${event.rep_distance_m} m`
-      : event.rep_time_minutes
-        ? formatMinutes(event.rep_time_minutes)
+      : event.rep_time_seconds
+        ? formatSeconds(event.rep_time_seconds)
         : "";
 
   const repsLine = [

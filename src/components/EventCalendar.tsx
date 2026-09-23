@@ -7,6 +7,7 @@ import { EVENT_TYPE_LABELS, type EventWithCreator } from "@/lib/types/database";
 const DOT_COLOR: Record<string, string> = {
   seance: "bg-brand-blue",
   course: "bg-brand-orange",
+  sortie: "bg-emerald-500",
   autre: "bg-zinc-400",
 };
 

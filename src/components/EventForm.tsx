@@ -7,6 +7,18 @@ import { MapPicker } from "@/components/MapPicker";
 import { geocodeAddress } from "@/lib/geocode";
 import { SEANCE_TYPE_SUGGESTIONS, type EventType, type RepUnit } from "@/lib/types/database";
 
+const TERRAIN_OPTIONS = [
+  { value: "route", label: "Route" },
+  { value: "chemin", label: "Chemin" },
+  { value: "trail", label: "Trail" },
+];
+
+const DIFFICULTY_OPTIONS = [
+  { value: "debutant", label: "Débutant" },
+  { value: "intermediaire", label: "Intermédiaire" },
+  { value: "confirme", label: "Confirmé" },
+];
+
 const initialState: CreateEventState = {};
 
 const inputClass =
@@ -75,7 +87,8 @@ export function EventForm() {
         >
           <option value="seance">Séance d&apos;entraînement</option>
           <option value="course">Course</option>
-          <option value="autre">Autre (sortie, réunion...)</option>
+          <option value="sortie">Sortie</option>
+          <option value="autre">Autre (réunion...)</option>
         </select>
       </label>
 
@@ -110,16 +123,12 @@ export function EventForm() {
         />
       </label>
 
-      {type === "course" && (
+      {(type === "course" || type === "sortie") && (
         <>
-          <div className="grid grid-cols-3 gap-2">
+          <div className="grid grid-cols-2 gap-2">
             <label className="flex flex-col gap-1 text-sm">
               Distance (km)
               <input type="number" step="0.1" min="0" name="distance_km" className={inputClass} />
-            </label>
-            <label className="flex flex-col gap-1 text-sm">
-              Durée (min)
-              <input type="number" step="1" min="0" name="duration_minutes" className={inputClass} />
             </label>
             <label className="flex flex-col gap-1 text-sm">
               Dénivelé (m)
@@ -127,15 +136,70 @@ export function EventForm() {
             </label>
           </div>
           <label className="flex flex-col gap-1 text-sm">
-            Lien d&apos;inscription officiel
-            <input
-              type="url"
-              name="external_link"
-              placeholder="https://www.klikego.com/..."
-              className={inputClass}
-            />
+            Durée
+            <span className="flex items-center gap-2">
+              <input
+                type="number"
+                step="1"
+                min="0"
+                name="duration_hours"
+                placeholder="h"
+                className={`w-full ${inputClass}`}
+              />
+              <span className="text-zinc-400">h</span>
+              <input
+                type="number"
+                step="1"
+                min="0"
+                max="59"
+                name="duration_mins"
+                placeholder="min"
+                className={`w-full ${inputClass}`}
+              />
+              <span className="text-zinc-400">min</span>
+            </span>
           </label>
+
+          {type === "sortie" && (
+            <label className="flex flex-col gap-1 text-sm">
+              Niveau
+              <select name="difficulty" defaultValue="" className={inputClass}>
+                <option value="">Non précisé</option>
+                {DIFFICULTY_OPTIONS.map((o) => (
+                  <option key={o.value} value={o.value}>
+                    {o.label}
+                  </option>
+                ))}
+              </select>
+            </label>
+          )}
+
+          {type === "course" && (
+            <label className="flex flex-col gap-1 text-sm">
+              Lien d&apos;inscription officiel
+              <input
+                type="url"
+                name="external_link"
+                placeholder="https://www.klikego.com/..."
+                className={inputClass}
+              />
+            </label>
+          )}
         </>
+      )}
+
+      {type !== "autre" && (
+        <label className="flex flex-col gap-1 text-sm">
+          Type de terrain
+          <select name="terrain" defaultValue="" className={inputClass}>
+            <option value="">Non précisé</option>
+            {TERRAIN_OPTIONS.map((o) => (
+              <option key={o.value} value={o.value}>
+                {o.label}
+              </option>
+            ))}
+          </select>
+        </label>
       )}
 
       {type === "seance" && (
@@ -200,8 +264,8 @@ export function EventForm() {
             <div className="grid grid-cols-2 gap-2">
               {repUnit === "time" ? (
                 <label className="flex flex-col gap-1 text-sm">
-                  Durée d&apos;une répétition (min)
-                  <input type="number" step="0.5" min="0" name="rep_time_minutes" className={inputClass} />
+                  Durée d&apos;une répétition (s)
+                  <input type="number" step="5" min="0" name="rep_time_seconds" className={inputClass} />
                 </label>
               ) : (
                 <label className="flex flex-col gap-1 text-sm">

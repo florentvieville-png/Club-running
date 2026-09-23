@@ -12,7 +12,7 @@ const nonNegativeInt = z.coerce.number().int().min(0);
 
 const createEventSchema = z
   .object({
-    type: z.enum(["seance", "course", "autre"]),
+    type: z.enum(["seance", "course", "sortie", "autre"]),
     title: z.string().trim().min(3, "Titre trop court").max(120),
     description: z.string().trim().max(2000).optional().or(z.literal("")),
     starts_at: z.string().min(1, "Date requise"),
@@ -26,10 +26,12 @@ const createEventSchema = z
       .url("Lien invalide")
       .optional()
       .or(z.literal("")),
-    // Courses
+    // Courses / sorties
     distance_km: positiveNumber.optional(),
     duration_minutes: positiveNumber.optional(),
     elevation_gain_m: z.coerce.number().min(0).optional(),
+    terrain: z.enum(["route", "chemin", "trail"]).optional(),
+    difficulty: z.enum(["debutant", "intermediaire", "confirme"]).optional(),
     // Séances
     seance_type: z.string().trim().max(60).optional().or(z.literal("")),
     warmup_minutes: positiveNumber.optional(),
@@ -39,7 +41,7 @@ const createEventSchema = z
     series_count: nonNegativeInt.optional(),
     reps_count: nonNegativeInt.optional(),
     rep_unit: z.enum(["time", "distance"]).optional(),
-    rep_time_minutes: positiveNumber.optional(),
+    rep_time_seconds: nonNegativeInt.optional(),
     rep_distance_m: positiveNumber.optional(),
     rep_elevation_m: z.coerce.number().min(0).optional(),
     rep_vma_pct: percent.optional(),
@@ -65,6 +67,10 @@ export async function createEvent(
 
   const field = (name: string) => formData.get(name) || undefined;
 
+  const durationHours = Number(formData.get("duration_hours") || 0);
+  const durationMins = Number(formData.get("duration_mins") || 0);
+  const totalDurationMinutes = durationHours * 60 + durationMins;
+
   const raw = {
     type: formData.get("type"),
     title: formData.get("title"),
@@ -76,8 +82,10 @@ export async function createEvent(
     longitude: field("longitude"),
     external_link: formData.get("external_link") ?? "",
     distance_km: field("distance_km"),
-    duration_minutes: field("duration_minutes"),
+    duration_minutes: totalDurationMinutes > 0 ? totalDurationMinutes : undefined,
     elevation_gain_m: field("elevation_gain_m"),
+    terrain: field("terrain"),
+    difficulty: field("difficulty"),
     seance_type: formData.get("seance_type"),
     warmup_minutes: field("warmup_minutes"),
     warmup_vma_pct: field("warmup_vma_pct"),
@@ -86,7 +94,7 @@ export async function createEvent(
     series_count: field("series_count"),
     reps_count: field("reps_count"),
     rep_unit: field("rep_unit"),
-    rep_time_minutes: field("rep_time_minutes"),
+    rep_time_seconds: field("rep_time_seconds"),
     rep_distance_m: field("rep_distance_m"),
     rep_elevation_m: field("rep_elevation_m"),
     rep_vma_pct: field("rep_vma_pct"),
@@ -119,6 +127,8 @@ export async function createEvent(
       distance_km: parsed.data.distance_km ?? null,
       duration_minutes: parsed.data.duration_minutes ?? null,
       elevation_gain_m: parsed.data.elevation_gain_m ?? null,
+      terrain: parsed.data.terrain ?? null,
+      difficulty: parsed.data.difficulty ?? null,
       seance_type: parsed.data.seance_type || null,
       warmup_minutes: parsed.data.warmup_minutes ?? null,
       warmup_vma_pct: parsed.data.warmup_vma_pct ?? null,
@@ -127,7 +137,7 @@ export async function createEvent(
       series_count: parsed.data.series_count ?? null,
       reps_count: parsed.data.reps_count ?? null,
       rep_unit: parsed.data.rep_unit ?? null,
-      rep_time_minutes: parsed.data.rep_time_minutes ?? null,
+      rep_time_seconds: parsed.data.rep_time_seconds ?? null,
       rep_distance_m: parsed.data.rep_distance_m ?? null,
       rep_elevation_m: parsed.data.rep_elevation_m ?? null,
       rep_vma_pct: parsed.data.rep_vma_pct ?? null,

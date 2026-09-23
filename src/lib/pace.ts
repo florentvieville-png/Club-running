@@ -18,3 +18,11 @@ export function formatMinutes(minutes: number | null | undefined): string {
   const m = Math.round(minutes % 60);
   return m > 0 ? `${h} h ${m} min` : `${h} h`;
 }
+
+export function formatSeconds(seconds: number | null | undefined): string {
+  if (seconds == null) return "";
+  if (seconds < 60) return `${seconds}s`;
+  const m = Math.floor(seconds / 60);
+  const s = seconds % 60;
+  return s > 0 ? `${m} min ${s}s` : `${m} min`;
+}

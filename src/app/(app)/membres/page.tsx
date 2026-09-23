@@ -4,6 +4,7 @@ import { getCurrentProfile } from "@/lib/supabase/current-profile";
 import { updateOwnProfile } from "@/app/actions/profiles";
 import { RoleSelect } from "@/components/RoleSelect";
 import { Avatar } from "@/components/Avatar";
+import { ChangePasswordForm } from "@/components/ChangePasswordForm";
 import type { Profile } from "@/lib/types/database";
 
 const ROLE_BADGE: Record<string, string> = {
@@ -86,6 +87,7 @@ export default async function MembersPage() {
             Enregistrer
           </button>
         </form>
+        <ChangePasswordForm />
       </section>
 
       <section className="flex flex-col gap-3">

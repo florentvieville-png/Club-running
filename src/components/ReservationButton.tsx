@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import { useRouter } from "next/navigation";
 import { createReservation } from "@/app/actions/shop";
 
 export function ReservationButton({ itemId }: { itemId: string }) {
@@ -8,6 +9,7 @@ export function ReservationButton({ itemId }: { itemId: string }) {
   const [note, setNote] = useState("");
   const [done, setDone] = useState(false);
   const [isPending, startTransition] = useTransition();
+  const router = useRouter();
 
   if (done) {
     return (
@@ -21,7 +23,7 @@ export function ReservationButton({ itemId }: { itemId: string }) {
     return (
       <button
         onClick={() => setOpen(true)}
-        className="rounded-lg bg-brand-orange px-3 py-1.5 text-sm font-medium text-white hover:brightness-95  dark:hover:bg-brand-orange"
+        className="rounded-lg bg-brand-orange px-3 py-1.5 text-sm font-medium text-white hover:brightness-95"
       >
         Réserver
       </button>
@@ -43,9 +45,10 @@ export function ReservationButton({ itemId }: { itemId: string }) {
             startTransition(async () => {
               await createReservation(itemId, note);
               setDone(true);
+              router.refresh();
             })
           }
-          className="rounded-lg bg-brand-orange px-3 py-1.5 text-sm font-medium text-white disabled:opacity-50 hover:brightness-95  dark:hover:bg-brand-orange"
+          className="rounded-lg bg-brand-orange px-3 py-1.5 text-sm font-medium text-white disabled:opacity-50 hover:brightness-95"
         >
           Confirmer la demande
         </button>

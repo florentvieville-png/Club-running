@@ -28,12 +28,30 @@ function LoginForm() {
   const searchParams = useSearchParams();
   const next = searchParams.get("next") ?? "/";
 
-  const [mode, setMode] = useState<"signin" | "signup">("signin");
+  const [mode, setMode] = useState<"signin" | "signup" | "forgot">("signin");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [fullName, setFullName] = useState("");
   const [status, setStatus] = useState<"idle" | "loading" | "sent">("idle");
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+  async function handleForgotPassword(e: React.FormEvent) {
+    e.preventDefault();
+    setStatus("loading");
+    setErrorMessage(null);
+
+    const supabase = createClient();
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: `${window.location.origin}/auth/callback?next=/membres`,
+    });
+
+    if (error) {
+      setStatus("idle");
+      setErrorMessage(error.message);
+      return;
+    }
+    setStatus("sent");
+  }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -137,9 +155,47 @@ function LoginForm() {
 
         {status === "sent" ? (
           <p className="mt-6 rounded-lg bg-green-50 px-3 py-2 text-sm text-green-700 dark:bg-green-950 dark:text-green-300">
-            Un e-mail de confirmation vient de vous être envoyé. Ouvrez-le pour activer votre
-            compte, puis revenez vous connecter.
+            {mode === "forgot"
+              ? "Un e-mail avec un lien de réinitialisation vient de vous être envoyé. Ouvrez-le pour choisir un nouveau mot de passe."
+              : "Un e-mail de confirmation vient de vous être envoyé. Ouvrez-le pour activer votre compte, puis revenez vous connecter."}
           </p>
+        ) : mode === "forgot" ? (
+          <form onSubmit={handleForgotPassword} className="mt-5 flex flex-col gap-3">
+            <p className="text-sm text-zinc-500">
+              Entrez votre e-mail, vous recevrez un lien pour choisir un nouveau mot de passe.
+            </p>
+            <label className="flex flex-col gap-1 text-sm text-zinc-700 dark:text-zinc-300">
+              E-mail
+              <input
+                type="email"
+                required
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="vous@exemple.fr"
+                className="rounded-xl border border-zinc-300 px-3 py-2.5 text-sm outline-none focus:border-brand-orange dark:border-zinc-700 dark:bg-zinc-900 dark:focus:border-brand-orange"
+              />
+            </label>
+            {errorMessage && (
+              <p className="text-sm text-red-600 dark:text-red-400">{errorMessage}</p>
+            )}
+            <button
+              type="submit"
+              disabled={status === "loading"}
+              className="mt-2 rounded-xl bg-brand-orange px-3 py-3 text-sm font-semibold text-white shadow-md shadow-orange-500/30 transition-colors hover:brightness-95 disabled:opacity-50"
+            >
+              {status === "loading" ? "Un instant..." : "Envoyer le lien"}
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setMode("signin");
+                setErrorMessage(null);
+              }}
+              className="text-sm text-zinc-500 underline"
+            >
+              Retour à la connexion
+            </button>
+          </form>
         ) : (
           <form onSubmit={handleSubmit} className="mt-5 flex flex-col gap-3">
             {mode === "signup" && (
@@ -178,6 +234,18 @@ function LoginForm() {
                 className="rounded-xl border border-zinc-300 px-3 py-2.5 text-sm outline-none focus:border-brand-orange dark:border-zinc-700 dark:bg-zinc-900 dark:focus:border-brand-orange"
               />
             </label>
+            {mode === "signin" && (
+              <button
+                type="button"
+                onClick={() => {
+                  setMode("forgot");
+                  setErrorMessage(null);
+                }}
+                className="w-fit text-xs text-zinc-500 underline"
+              >
+                Mot de passe oublié ?
+              </button>
+            )}
             {errorMessage && (
               <p className="text-sm text-red-600 dark:text-red-400">{errorMessage}</p>
             )}

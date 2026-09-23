@@ -20,18 +20,37 @@ export async function createShopItem(
 
   const name = String(formData.get("name") ?? "").trim();
   const description = String(formData.get("description") ?? "").trim();
-  const image_url = String(formData.get("image_url") ?? "").trim();
   const price_label = String(formData.get("price_label") ?? "").trim();
+  const imageFile = formData.get("image");
 
   if (name.length < 2) {
     return { error: "Nom de l'article requis" };
   }
 
   const supabase = await createClient();
+
+  let image_url: string | null = null;
+  if (imageFile instanceof File && imageFile.size > 0) {
+    if (!imageFile.type.startsWith("image/")) {
+      return { error: "Le fichier doit être une image" };
+    }
+    const extension = imageFile.name.split(".").pop() || "jpg";
+    const path = `${crypto.randomUUID()}.${extension}`;
+
+    const { error: uploadError } = await supabase.storage
+      .from("shop-images")
+      .upload(path, imageFile, { contentType: imageFile.type });
+
+    if (uploadError) return { error: `Échec de l'envoi de la photo : ${uploadError.message}` };
+
+    const { data: pub } = supabase.storage.from("shop-images").getPublicUrl(path);
+    image_url = pub.publicUrl;
+  }
+
   const { error } = await supabase.from("shop_items").insert({
     name,
     description: description || null,
-    image_url: image_url || null,
+    image_url,
     price_label: price_label || null,
     created_by: current.userId,
   });

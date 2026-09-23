@@ -84,6 +84,11 @@ export default async function EventDetailPage(props: PageProps<"/evenements/[id]
         {event.creator && (
           <p className="mt-2 text-xs text-white/60">Proposé par {event.creator.full_name}</p>
         )}
+        {event.status === "approved" && (
+          <p className="mt-2 w-fit rounded-full bg-white/15 px-2.5 py-0.5 text-xs font-medium">
+            👥 {grouped.going.length} participant{grouped.going.length > 1 ? "s" : ""}
+          </p>
+        )}
       </div>
 
       {stats.length > 0 && (

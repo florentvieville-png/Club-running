@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import { useRouter } from "next/navigation";
 import { approveEvent, rejectEvent } from "@/app/actions/events";
 import type { UserRole } from "@/lib/types/database";
 
@@ -18,6 +19,7 @@ export function ApprovalActions({
   const [isPending, startTransition] = useTransition();
   const [showReject, setShowReject] = useState(false);
   const [reason, setReason] = useState("");
+  const router = useRouter();
 
   const alreadyApprovedByMe = role === "admin" ? adminApproved : coachApproved;
 
@@ -36,7 +38,12 @@ export function ApprovalActions({
         <div className="flex gap-2">
           <button
             disabled={isPending}
-            onClick={() => startTransition(() => approveEvent(eventId))}
+            onClick={() =>
+              startTransition(async () => {
+                await approveEvent(eventId);
+                router.refresh();
+              })
+            }
             className="rounded-lg bg-green-700 px-3 py-1.5 text-sm font-medium text-white disabled:opacity-50"
           >
             Valider
@@ -63,7 +70,12 @@ export function ApprovalActions({
           <div className="flex gap-2">
             <button
               disabled={isPending}
-              onClick={() => startTransition(() => rejectEvent(eventId, reason))}
+              onClick={() =>
+                startTransition(async () => {
+                  await rejectEvent(eventId, reason);
+                  router.refresh();
+                })
+              }
               className="rounded-lg bg-red-700 px-3 py-1.5 text-sm font-medium text-white disabled:opacity-50"
             >
               Confirmer le refus
